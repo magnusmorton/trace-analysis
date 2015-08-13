@@ -23,4 +23,17 @@
              (matmul (vector-copy m1 (* worker chunk) (+ (* worker chunk) chunk)) m2)))))
 
 
-(time (matmul-chunked (make-mat 1000 100) (make-mat 100 1000) WORKERS))
+(define mat1 (make-mat 1000 1000))
+(define mat2 (make-mat 1000 1000))
+
+;;(time (matmul-chunked (make-mat 1000 100) (make-mat 100 1000) WORKERS))
+
+;; warmup
+(matmul mat1 mat2)
+
+
+;;actual
+(matmul mat1 mat2)
+
+;; actual chunked
+;;(matmul-chunked mat1 mat2 10)
