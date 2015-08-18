@@ -196,12 +196,32 @@ class Fragment(Countable):
 
 
 class Program(object):
-    def __init__(self, name, fragments, counts, entry_points):
+    def __init__(self, name, fragments, counts, entry_points, times):
         self.name = name
         self.fragments = fragments
         self.counts = counts
         self.entry_points = entry_points
+        self.times = times
 
+    def hashed_counts(self):
+        hashed_counts = {}
+        for key, value in self.counts.iteritems():
+            if value:
+                if key in self.fragments:
+                    hashed_counts[hash(self.fragments[key])] = value
+        return hashed_counts
+        
+    def diff_class_counts(self, counts):
+        
+        hashed_frags = {hash(frag):frag for frag in self.fragments.values()}
+        
+        frag_counts  = {key: frag.class_counts() for key, frag in hashed_frags.iteritems() if key in counts}
+
+        add_lists = lambda a, b: map(op.add, a, b)
+        scal_mul = lambda s, a: [s*i for i in a]
+        return reduce( lambda x, y: add_lists(x, scal_mul(counts[y], frag_counts[y])), counts, [0,0,0,0,0])
+        
+    
     def cost(self):
         frag_costs = {}
         eqn = {}

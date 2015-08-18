@@ -8,7 +8,7 @@ import trace as trace_utils
 loop_re = re.compile(r"LOOP - HASH: (?P<hash>.*) TT: (?P<tt>.*) COST: (?P<cost>.*)")
 bridge_re = re.compile(r"BRIDGE -.*HASH: (?P<hash>.*) GUARD: *(?P<guard>\d*) COST: (?P<cost>.*)")
 counts_re = re.compile(r"loop.*([elb]) (?P<fragment>\d*) (?P<count>\d*)") 
-times_re = re.compile(r"\s*(\d*\.\d*) seconds time elapsed")
+times_re = re.compile(r"cpu time: (\d*) real time: \d* gc time: \d*")
 looptoken_re = re.compile(r"<Loop(\d*)>")
 assembly_re = re.compile(r"ASSEMBLY (\d*) from ops: \d*")
 
@@ -78,7 +78,7 @@ def parse_files(filenames, fragment=False):
         assert len(traces) > 0
         frags = {frag.label: frag for frag in reduce(operator.add, [trace.get_fragments(guards) for trace in traces])}
         name = os.path.basename(arg)
-        all_fragments.append(trace_utils.Program(name, frags, counts, entry_points))
+        all_fragments.append(trace_utils.Program(name, frags, counts, entry_points, run_times))
 
     if fragment:
         return all_traces
