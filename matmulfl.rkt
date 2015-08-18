@@ -87,12 +87,26 @@
   (apply vector-append As))
 
 
+(define (flmat-*cluster A B c)
+  (define Bt (flmat-transpose B))
+  (flmat-uncluster
+   (for/list ([cluster (flmat-cluster A c)])
+     (flmat-*t cluster Bt))))
+
+
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define mat1 (flmat-random 1000 1000))
 (define mat2 (flmat-random 1000 1000))
 
 ;; Warmup
-(flmat-* mat1 mat2)
+;;(flmat-* mat1 mat2)
+(flmat-*cluster mat1 mat2 250)
 
-;;
+;; task
+;;(time (flmat-* mat1 mat2))
+(define mat2t (flmat-transpose mat2))
+(define cluster (vector-copy mat1 0 250))
+(time (flmat-*t cluster mat2t))
