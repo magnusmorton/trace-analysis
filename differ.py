@@ -15,11 +15,14 @@ def main():
     times = [ float(item) for item in args.times.split()]
 
     programs = trace_parser.parse_files(args.filenames)
-    seq_counts = programs[0].counts
-    chunked_counts = programs[1].counts
+    warmup_counts = programs[0].counts
+    task_counts = programs[1].counts
 
-    assert len(seq_counts) == len(chunked_counts)
-    
+    assert len(warmup_counts) == len(task_counts)
+
+    #horrific
+    diff =  {key: value for key,value in task_counts.iteritems() if value not in warmup_counts.values()}
+    print diff
     
 
 if __name__ == "__main__":
