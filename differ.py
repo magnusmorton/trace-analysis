@@ -25,8 +25,9 @@ def main():
     dot = lambda x,y: sum(a*b for a,b in izip(x,y))
     cost = dot(programs[1].diff_class_counts(diff), model)
     print "COUNTER DIFF"
-    print diff
-    print "TIME %(time)f microseconds" % {"time":task_time}
+    for key, value in diff.iteritems():
+        print "%(key)d: %(value).0f" % locals()  
+    print "TIME: %(time)g microseconds" % {"time":task_time}
     print "DIFF COSTS: %(cost)g" % {"cost":cost}
     
 
