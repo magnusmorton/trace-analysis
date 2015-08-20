@@ -10,12 +10,9 @@
     (random-vector rows)))
 
 (define (matmul m1 m2)
-  (let ([transpose (apply vector-map vector (vector->list m2))]) 
-    (for/vector ([r m1])
-      (for/vector ([c transpose])
-        (for/fold ([sum 0])
-                  ([i (vector-map * r c)])
-          (+ sum i))))))
+  (for/vector ([r m1])
+    (for/vector ([c  (apply vector-map vector (vector->list m2))])
+      (apply + (vector->list (vector-map * r c))))))
 
 (define (matmul-chunked m1 m2 n)
   (let ([chunk (/ (vector-length m1) n)])
@@ -24,17 +21,17 @@
              (matmul (vector-copy m1 (* worker chunk) (+ (* worker chunk) chunk)) m2)))))
 
 
-(define mat1 (make-mat 1000 1000))
-(define mat2 (make-mat 1000 1000))
+(define mat1 (make-mat 1000 100))
+(define mat2 (make-mat 100 1000))
 
 ;;(time (matmul-chunked (make-mat 1000 100) (make-mat 100 1000) WORKERS))
 
 ;; warmup
-;;(matmul mat1 mat2)
+(matmul (make-mat 10 10) (make-mat 10 10))
 
 
 ;;actual
-(time (matmul mat1 mat2))
+;;mat2
 
 ;; actual chunked
 ;;(matmul-chunked mat1 mat2 10)

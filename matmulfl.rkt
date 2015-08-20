@@ -3,8 +3,21 @@
 
 (require racket/flonum)
 (require racket/vector)
-
+(require racket/cmdline)
 (define mod-id #"matmult")
+
+(define chunk-size (make-parameter 0))
+(define warmup? (make-parameter #f))
+(define transformed? (make-parameter #f))
+
+(command-line
+ #:program "matmul"
+ #:once-each
+ [("-w") "warmup?"
+  (warmup? #t)]
+ [("-t") "transformed"
+  (transformed? #t)])
+ 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Vector operations;
