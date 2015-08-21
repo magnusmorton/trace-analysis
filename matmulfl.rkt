@@ -7,18 +7,17 @@
 (define mod-id #"matmult")
 
 (define chunk-size (make-parameter 0))
-(define warmup? (make-parameter #f))
-(define transformed? (make-parameter #f))
+(define task? (make-parameter #f))
+
 
 (command-line
  #:program "matmul"
  #:once-each
- [("-w") "warmup?"
-  (warmup? #t)]
- [("-t") "transformed"
-  (transformed? #t)])
+ [("-t" "--task") "task?"
+  (task? #t)]
+ [("-c" "--chunk-size") cs "chunk size"
+  (chunk-size (string->number cs))])
  
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Vector operations;
 ;; row and column vectors are flvectors of positive dimension.
@@ -115,11 +114,18 @@
 (define mat2 (flmat-random 1000 1000))
 
 ;; Warmup
-;;(flmat-* mat1 mat2)
-(flmat-*cluster mat1 mat2 250)
+;;
+(define mat2t (flmat-transpose mat2))
+(define cluster (vector-copy mat1 0 (chunk-size)))
+(if (= (chunk-size) 0)
+  (flmat-* mat1 mat2)  
+  (flmat-*cluster mat1 mat2 (chunk-size)))
 
 ;; task
-;;(time (flmat-* mat1 mat2))
-(define mat2t (flmat-transpose mat2))
-(define cluster (vector-copy mat1 0 250))
-(time (flmat-*t cluster mat2t))
+;;(time 
+(when (task?)
+  (if (= (chunk-size) 0)
+      (time (flmat-* mat1 mat2)) 
+      (time (flmat-*t cluster mat2t))))
+
+   
