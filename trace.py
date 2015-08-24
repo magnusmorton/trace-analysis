@@ -203,6 +203,10 @@ class Program(object):
         self.entry_points = entry_points
         self.times = times
 
+
+    def average_time(self):
+        return sum(self.times)/len(self.times)
+    
     def hashed_counts(self):
         hashed_counts = {}
         for key, value in self.counts.iteritems():
