@@ -17,7 +17,7 @@ def main():
     programs = trace_parser.parse_files(args.filenames)
     warmup_counts = programs[0].hashed_counts()
     task_counts = programs[1].hashed_counts()
-    task_time = programs[1].times[0]
+    task_time = programs[1].average_times()
     assert len(warmup_counts) == len(task_counts)
 
     diff = {key:(task_counts[key] - warmup_counts[key]) for key in task_counts if (task_counts[key] - warmup_counts[key]) > 0}
