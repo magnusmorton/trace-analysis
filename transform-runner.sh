@@ -4,23 +4,23 @@ sizes = (1 10 20 50 83 100 125 200 250 333 500 1000)
 # untransformed
 #warmup
 
-../pycket/pycket-c  matmulfl.rkt -c 0 > matmulseqwu
+../pycket/pycket-c  matmulfl.rkt -c 0 > trans_benchmarks/matmulseqwu
 
 #task
 for i in {1..10}
 do
-    ../pycket/pycket-c  matmulfl.rkt -c 0 >> matmulseqtask
+    ../pycket/pycket-c  matmulfl.rkt -c 0 >> trans_benchmarks/matmulseqtask
 done	 
 
 #transformed 
 for size in sizes
 do
     #warmup
-    ../pycket/pycket-c  matmulfl.rkt -c 0 > matmultranswu${size} 
+    ../pycket/pycket-c  matmulfl.rkt -c 0 > trans_benchmarks/matmultranswu${size} 
     #task
     for i in {1..10}
     do
-	../pycket/pycket-c  matmulfl.rkt -c 0 >> matmultranstask${size}
+	../pycket/pycket-c  matmulfl.rkt -c 0 >> trans_benchmarks/matmultranstask${size}
     done	 
    
     
