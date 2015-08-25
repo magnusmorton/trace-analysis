@@ -116,10 +116,14 @@
 ;; Warmup
 ;;
 (define mat2t (flmat-transpose mat2))
-(define cluster (vector-copy mat1 0 (chunk-size)))
+(define cluster #())
+;;(define cluster (vector-copy mat1 0 (chunk-size)))
 (if (= (chunk-size) 0)
-  (flmat-* mat1 mat2)  
-  (flmat-*cluster mat1 mat2 (chunk-size)))
+    (flmat-* mat1 mat2)
+    (begin
+      (set! cluster  (vector-copy mat1 0 (chunk-size)))
+      (flmat-*cluster mat1 mat2 (chunk-size))))
+    
 
 ;; task
 ;;(time 
