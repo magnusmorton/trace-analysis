@@ -1,5 +1,6 @@
-sizes=(1 10 20 50 83 100 125 200 250 333 500 1000)
-
+#!/usr/bin/zsh
+sizes=(1 2 4 6 8 10 12 16 32 50 64 100 125 250 333 500 1000)
+dims=(100 500 1000)
 # untransformed
 #warmup
 
@@ -11,17 +12,21 @@ do
     ../pycket/pycket-c  matmulfl.rkt  -c 0 -t >> trans_benchmarks/matmulseqtask
 done	 
 
-#transformed 
-for size in ${sizes[*]}
+#transformed
+for dim in $dims
 do
-
-    echo $size
-    #warmup
-    ../pycket/pycket-c  matmulfl.rkt -c $size > "trans_benchmarks/matmultranswu${size}"
-    #task
-    for i in {1..10}
+    #echo $dim
+    for size in $sizes
     do
-	echo $i
-	../pycket/pycket-c  matmulfl.rkt  -c $size -t >> "trans_benchmarks/matmultranstask${size}"
-    done	 
+	if [[ $size -gt $dim ]]; then
+	    break
+	fi
+	#warmup
+	../pycket/pycket-c  matmulfl.rkt -c $size > "trans_benchmarks/matmultranswu${dim}x${size}"
+	#task
+	for i in {1..10}
+	do
+	    ../pycket/pycket-c  matmulfl.rkt  -c $size -t >> "trans_benchmarks/matmultranstask${dim}x${size}"
+	done	 
+    done
 done

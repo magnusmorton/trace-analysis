@@ -8,7 +8,7 @@
 
 (define chunk-size (make-parameter 0))
 (define task? (make-parameter #f))
-
+(define dim (make-parameter 0))
 
 (command-line
  #:program "matmul"
@@ -16,7 +16,9 @@
  [("-t" "--task") "task?"
   (task? #t)]
  [("-c" "--chunk-size") cs "chunk size"
-  (chunk-size (string->number cs))])
+  (chunk-size (string->number cs))]
+ [("-m" "--matrix-size") ms "matrix dimension"
+  (dim (string->number ms))])
  
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Vector operations;
@@ -110,8 +112,8 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(define mat1 (flmat-random 1000 1000))
-(define mat2 (flmat-random 1000 1000))
+(define mat1 (flmat-random (dim) (dim)))
+(define mat2 (flmat-random (dim) (dim)))
 
 ;; Warmup
 ;;
