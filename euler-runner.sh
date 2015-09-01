@@ -4,21 +4,14 @@ lengths=(1000 2000 4000)
 # untransformed
 #warmup
 
-../pycket/pycket-c  sumeuler.rkt -c 0 > trans_benchmarks/eulerseqwu
-
-#task
-for i in {1..10}
-do
-    ../pycket/pycket-c  sumeuler.rkt  -c 0 -t >> trans_benchmarks/eulerseqtask
-done	 
-
 #transformed
 for length in $lengths
 do
-
+    echo "warmup"
     ../pycket/pycket-c  sumeuler.rkt -c 0 -l $length> trans_benchmarks/eulerseqwu
 
     #task
+    echo "task"
     for i in {1..10}
     do
 	../pycket/pycket-c  sumeuler.rkt  -c 0 -t -l $length >> trans_benchmarks/eulerseqtask

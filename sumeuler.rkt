@@ -16,9 +16,9 @@
  [("-c" "--chunk-size") cs "chunk size"
   (chunk-size (string->number cs))]
  [("-s" "--stride") "stride?"
-  (stride #t)]
- [("-l" "--length") len "length"
-  (len (string->number len))])
+  (stride? #t)]
+ [("-l" "--length") ls "length"
+  (len (string->number ls))])
  
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Sum of Euler's totient function
