@@ -1,16 +1,18 @@
-sizes=(1 10 20 50 83 100 125 200 250 333 500 1000)
+sizes=(1 2 4 6 8 10 12 16 32 50 64 100 125 250 333 500 1000)
+dims=(100 500 1000)
 
 DIR=trans_benchmarks
-# untransformed
 
-echo "sequential"
-python  differ.py ${DIR}/matmulseqwu  ${DIR}/matmulseqtask  
-
-#transformed
-echo "transformed"
-for size in ${sizes[*]}
+for dim in $dims
 do
-    echo ""
-    echo $size
-    python  differ.py ${DIR}/matmultranswu${size}  ${DIR}/matmultranstask${size}
+    echo $dim
+    #seq
+    python differ.py ${DIR}/matmulseqwu${dim} ${DIR}/matmulseqtask${dim}
+
+    #transformed
+    for size in $sizes
+    do
+	echo $size
+	python differ.py ${DIR}/matmultranswu${dim}x${size} ${DIR}/matmultranstask${dim}x${dim}
+    done
 done
