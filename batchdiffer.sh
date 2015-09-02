@@ -15,7 +15,7 @@ do
 	if [[ $size -gt $dim ]]; then
 	    break
 	fi
-	echo "${dim}x${size}
+	echo "${dim}x${size}"
 	python differ.py "${DIR}/matmultranswu${dim}x${size}" "${DIR}/matmultranstask${dim}x${size}"
     done
 done
