@@ -5,7 +5,7 @@ DIR=trans_benchmarks
 
 for dim in $dims
 do
-    echo $dim
+    echo "seq ${dim}"
     #seq
     python differ.py ${DIR}/matmulseqwu${dim} ${DIR}/matmulseqtask${dim}
 
@@ -15,7 +15,7 @@ do
 	if [[ $size -gt $dim ]]; then
 	    break
 	fi
-	echo $size
+	echo "${dim}x${size}
 	python differ.py "${DIR}/matmultranswu${dim}x${size}" "${DIR}/matmultranstask${dim}x${size}"
     done
 done

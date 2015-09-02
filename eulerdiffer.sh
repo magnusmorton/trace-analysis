@@ -6,7 +6,7 @@ DIR=trans_benchmarks
 
 for length in $lengths
 do
-    echo $length
+    echo "${length} seq"
     #seq
     python differ.py ${DIR}/eulerseqwu${length} ${DIR}/eulerseqtask${length}
 
@@ -16,10 +16,10 @@ do
 	if [[ $size -gt $length ]]; then
 	    break
 	fi
-	echo "${size} chunk"
+	echo "${length}x${size} chunk"
 	python differ.py ${DIR}/eulerchunkwu${length}x${size} ${DIR}/eulerchunktask${length}x${length}
 
-	echo "${size} stride"
+	echo "${length}x${size} stride"
 	python differ.py ${DIR}/eulerstridewu${length}x${size} ${DIR}/eulerstridetask${length}x${length}
     done
 done

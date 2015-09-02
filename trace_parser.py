@@ -42,7 +42,6 @@ def parse_files(filenames, fragment=False):
             line = f.readline()
             while line:
                 if line.rstrip() == "BEGIN":
-                    print "fooo"
                     # we only need the last instance of these
                     counts = {}
                     traces = []
