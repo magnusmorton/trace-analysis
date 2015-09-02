@@ -13,6 +13,6 @@ do
     for size in $sizes
     do
 	echo $size
-	python differ.py "${DIR}/matmultranswu${dim}x${size} ${DIR}/matmultranstask${dim}x${dim}"
+	python differ.py "${DIR}/matmultranswu${dim}x${size}" "${DIR}/matmultranstask${dim}x${dim}"
     done
 done
