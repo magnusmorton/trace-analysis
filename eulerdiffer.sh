@@ -17,9 +17,9 @@ do
 	    break
 	fi
 	echo "${length}x${size} chunk"
-	python differ.py ${DIR}/eulerchunkwu${length}x${size} ${DIR}/eulerchunktask${length}x${length}
+	python differ.py ${DIR}/eulerchunkwu${length}x${size} ${DIR}/eulerchunktask${length}x${size}
 
 	echo "${length}x${size} stride"
-	python differ.py ${DIR}/eulerstridewu${length}x${size} ${DIR}/eulerstridetask${length}x${length}
+	python differ.py ${DIR}/eulerstridewu${length}x${size} ${DIR}/eulerstridetask${length}x${size}
     done
 done
