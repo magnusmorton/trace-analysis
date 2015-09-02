@@ -13,6 +13,9 @@ do
     #transformed
     for size in $sizes
     do
+	if [[ $size -gt $length ]]; then
+	    break
+	fi
 	echo "${size} chunk"
 	python differ.py ${DIR}/eulerchunkwu${length}x${size} ${DIR}/eulerchunktask${length}x${length}
 

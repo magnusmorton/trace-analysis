@@ -12,6 +12,9 @@ do
     #transformed
     for size in $sizes
     do
+	if [[ $size -gt $dim ]]; then
+	    break
+	fi
 	echo $size
 	python differ.py "${DIR}/matmultranswu${dim}x${size}" "${DIR}/matmultranstask${dim}x${size}"
     done
