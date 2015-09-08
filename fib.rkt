@@ -12,7 +12,7 @@
  #:once-each
  [("-t" "--task") "task?"
   (task? #t)]
- [("-th" "--threshold") th "threshold"
+ [("-o" "--threshold") th "threshold"
   (threshold (string->number th))]
  [("-n" "--number") n "number"
   (fib-num (string->number n))])

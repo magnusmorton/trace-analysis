@@ -25,7 +25,7 @@ do
 	#task
 	for i in {1..10}
 	do
-	    ../pycket/pycket-c fib.rkt -th $thresh -t -n $n > trans_benchmarks/fibtranstask${n}x${thresh}
+	    ../pycket/pycket-c fib.rkt -th $thresh -t -n $n >> trans_benchmarks/fibtranstask${n}x${thresh}
 	done
     done
 done
