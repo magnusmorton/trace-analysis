@@ -197,4 +197,4 @@
 (when (task?)
   (if (= (chunk-size) 0)
       (time (mandelbrot 255 (dim) (dim)))
-      (time (chunk-manderlbrot/abs #t 255 (dim) (dim) (chunk-size) 0))))
+      (time (chunk-mandelbrot/abs #t 255 (dim) (dim) (chunk-size) 0))))
