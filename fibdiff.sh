@@ -7,7 +7,7 @@ for n in $ns
 do
     echo "seq ${n}"
     #untransformed warmup
-    python differ.py ${DIR}/fibseqwu${n} ${DIR}/eulerseqtask${n}
+    python differ.py ${DIR}/fibseqwu${n} ${DIR}/fibseqtask${n}
 
 
     for thresh in $threshes
@@ -16,6 +16,6 @@ do
 	    break
 	fi
 	echo "${n}x${thresh}"
-	python differ.py ${DIR}/fibtranswu${n}x${thresh} ${DIR}/eulerseqtask${n}x${thresh}
+	python differ.py ${DIR}/fibtranswu${n}x${thresh} ${DIR}/fibtranstask${n}x${thresh}
     done
 done
