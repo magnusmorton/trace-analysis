@@ -1,4 +1,4 @@
-#!/usr/bin/zsh
+#!/usr/bin/env zsh
 ns=(35 36)
 threshes=(1 2 4 6 8 10 15 17 30 35 36)
 
@@ -16,7 +16,7 @@ do
 
     for thresh in $threshes
     do
-	if [[ $thresh -gt $n]]; then
+	if [[ $thresh -gt $n ]]; then
 	    break
 	fi
 	#warmup

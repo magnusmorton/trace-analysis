@@ -77,19 +77,33 @@ sizematch Chunk s = s =~ "([0-9]*)x[0-9]* chunk"
 sizematch Stride s = s =~ "([0-9]*)x[0-9]* stride"
 
 
-printOutput :: Euler -> Output -> IORef Int -> Int -> [B.ByteString] -> IO ()
-printOutput e o i l (x:xs) =
+printOutput :: IORef Bool -> Euler -> Output -> IORef Int -> Int -> [B.ByteString] -> IO ()
+printOutput skip e o i l (x:xs) =
   let (_,_,_, size) = sizematch e  $ C.unpack x
       (_,_,_,cost)  = costmatch $ C.unpack x
       (_,_,_,time) = timematch $ C.unpack x
   in do
     when (size /= []) (writeIORef i (read (size !! 0)))
     lastSize <- readIORef i
-    case o of
-     Cost -> when (cost /= [] && lastSize == l) (putStrLn (cost !! 0))
-     Time -> when (time /= [] && lastSize == l) (putStrLn (time !! 0))
-    printOutput e o i l xs
-printOutput _ _ _ _ [] = return ()
+    --putStrLn (show lastSize)
+
+    bskip <- readIORef skip
+    --putStrLn (show bskip)
+    if (not bskip)
+      then (case o of
+        Cost -> condOut cost lastSize l e skip
+        Time -> condOut time lastSize l e skip
+        )
+      else (case o of
+        Cost -> when (cost /= []) (writeIORef skip False)
+        Time -> when (time /= []) (writeIORef skip False)
+           )
+    printOutput skip e o i l xs
+printOutput _ _ _ _ _ [] = return ()
+
+condOut s lastSize l e skip = when (s /= [] && lastSize == l) ( putStrLn (s !! 0) >> case e of
+                                               None -> return ()
+                                               _ -> writeIORef skip True)
 
 main :: IO ()
 main = do
@@ -98,5 +112,11 @@ main = do
   putStrLn (show euler)
   contents <- B.readFile file
   i <- newIORef 0
-  printOutput euler output i size (C.lines contents)
+  skip <- newIORef False
+  case euler of
+   Chunk -> return ()
+   Stride -> writeIORef skip True >> putStrLn "FOO"
+   None -> return ()
+  putStrLn $ "Starting..." ++ (show euler)
+  printOutput skip euler output i size (C.lines contents)
   return ()
