@@ -2,8 +2,26 @@
 
 (require racket/flonum)
 (require racket/stream)
+(require racket/cmdline)
 (require "bit-vector.rkt")
 
+
+
+
+(define chunk-size (make-parameter 0))
+(define task? (make-parameter #f))
+(define dim (make-parameter 0))
+
+(command-line
+ #:program "matmul"
+ #:once-each
+ [("-t" "--task") "task?"
+  (task? #t)]
+ [("-c" "--chunk-size") cs "chunk size"
+  (chunk-size (string->number cs))]
+ [("-m" "--matrix-size") ms "matrix dimension"
+  (dim (string->number ms))])
+ 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; complex numbers
 
@@ -169,3 +187,14 @@
     (for ([i (in-range (vector-length v_chunk))])
       (vector-set! v (+ i y_chunk) (vector-ref v_chunk i))))
   v)
+
+
+;; warmup
+(if (= (chunk-size) 0)
+    (mandelbrot 255 (dim) (dim))
+    (mandelbrot-chunked 255 (dim) (dim) (chunk-size)))
+    
+(when (task?)
+  (if (= (chunk-size) 0)
+      (time (mandelbrot 255 (dim) (dim)))
+      (time (chunk-manderlbrot/abs #t 255 (dim) (dim) (chunk-size) 0))))

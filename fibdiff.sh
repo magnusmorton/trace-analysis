@@ -15,8 +15,7 @@ do
 	if [[ $thresh -gt $n ]]; then
 	    break
 	fi
-	echo "${n}x${size}"
+	echo "${n}x${thresh}"
 	python differ.py ${DIR}/fibtranswu${n}x${thresh} ${DIR}/eulerseqtask${n}x${thresh}
-	done
     done
 done
