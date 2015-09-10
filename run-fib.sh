@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
-ns=(35 36)
-threshes=(1 2 4 6 8 10 15 17 30 35 36)
+ns=(30  36  42)
+threshes=( 15 16 17 18 21 24 27 30 33 36 39 42)
 
 
 for n in $ns
