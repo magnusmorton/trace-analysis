@@ -19,6 +19,7 @@ def main():
     task_counts = programs[1].hashed_counts()
     task_time = programs[1].average_time()
     assert len(warmup_counts) == len(task_counts)
+    print "TRACE COUNT: ", len(task_counts)
 
     diff = {key:(task_counts[key] - warmup_counts[key]) for key in task_counts if (task_counts[key] - warmup_counts[key]) > 0}
 

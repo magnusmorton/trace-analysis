@@ -13,7 +13,7 @@ data Option = Option
              , euler :: Euler
              , file :: String}
 
-data Output = Cost | Time
+data Output = Cost | Time | Traces
 
 data Euler = Chunk | Stride | None deriving Show
 
@@ -36,7 +36,7 @@ instance Read Euler where
 
 instance Read Output where
   readsPrec _ value = 
-    tryParse [("cost", Cost), ("time", Time)]
+    tryParse [("cost", Cost), ("time", Time), ("traces", Traces)]
     where tryParse [] = []    -- If there is nothing left to try, fail
           tryParse ((attempt, result):xs) =
             -- Compare the start of the string to be parsed to the
@@ -71,6 +71,9 @@ timematch :: String -> (String,String,String,[String])
 timematch s  = s =~ "TIME: (.*) microseconds"
 
 
+tracesmatch :: String -> (String,String,String,[String])
+tracesmatch s = s =~ "TRACE COUNT: (.*)"
+
 sizematch :: Euler -> String -> (String, String, String, [String])
 sizematch None s = s =~ "([0-9]*)x[0-9]*"
 sizematch Chunk s = s =~ "([0-9]*)x[0-9]* chunk"
@@ -82,6 +85,7 @@ printOutput skip e o i l (x:xs) =
   let (_,_,_, size) = sizematch e  $ C.unpack x
       (_,_,_,cost)  = costmatch $ C.unpack x
       (_,_,_,time) = timematch $ C.unpack x
+      (_,_,_,traces) = tracesmatch $ C.unpack x
   in do
     when (size /= []) (writeIORef i (read (size !! 0)))
     lastSize <- readIORef i
@@ -93,6 +97,7 @@ printOutput skip e o i l (x:xs) =
       then (case o of
         Cost -> condOut cost lastSize l e skip
         Time -> condOut time lastSize l e skip
+        Traces -> condOut traces lastSize l e skip
         )
       else (case o of
         Cost -> when (cost /= []) (writeIORef skip False)
