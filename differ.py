@@ -18,11 +18,12 @@ def main():
     warmup_counts = programs[0].hashed_counts()
     task_counts = programs[1].hashed_counts()
     task_time = programs[1].average_time()
+    tracing = programs[1].tracing_time()
     assert len(warmup_counts) == len(task_counts)
-    print "TRACE COUNT: ", len(task_counts)
+
 
     diff = {key:(task_counts[key] - warmup_counts[key]) for key in task_counts if (task_counts[key] - warmup_counts[key]) > 0}
-
+    print "TRACE COUNT: ", len(diff)
     dot = lambda x,y: sum(a*b for a,b in izip(x,y))
     cost = dot(programs[1].diff_class_counts(diff), model)
     print "COUNTER DIFF"
@@ -30,6 +31,7 @@ def main():
         print "%(key)d: %(value).0f" % locals()  
     print "TIME: %(time)g microseconds" % {"time":task_time}
     print "DIFF COSTS: %(cost)g" % {"cost":cost}
+    print "TRACING: %(tracing)g" % {"tracing": tracing}
     
 
 if __name__ == "__main__":
