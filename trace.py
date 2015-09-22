@@ -196,16 +196,20 @@ class Fragment(Countable):
 
 
 class Program(object):
-    def __init__(self, name, fragments, counts, entry_points, times):
+    def __init__(self, name, fragments, counts, entry_points, times, tracing):
         self.name = name
         self.fragments = fragments
         self.counts = counts
         self.entry_points = entry_points
         self.times = times
+        self.tracing = tracing
 
 
     def average_time(self):
         return sum(self.times)/len(self.times)
+
+    def tracing_time(self):
+        return sum(self.tracing)/len(self.tracing)
     
     def hashed_counts(self):
         hashed_counts = {}

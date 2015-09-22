@@ -11,7 +11,8 @@ counts_re = re.compile(r"loop.*([elb]) (?P<fragment>\d*) (?P<count>\d*)")
 times_re = re.compile(r"cpu time: (\d*) real time: \d* gc time: \d*")
 looptoken_re = re.compile(r"<Loop(\d*)>")
 assembly_re = re.compile(r"ASSEMBLY (\d*) from ops: \d*")
-
+tracing_re = re.compile(r"TRACING: (\d+\.\d+)")
+backend_re = re.compile(r"BACKEND: (\d+\.\d+)")
 
 def calculate_average_times():
     tsv_paths = ["CrossBenchmarks_pycket.tsv", "Shootout_pycket.tsv"]
@@ -38,6 +39,8 @@ def parse_files(filenames, fragment=False):
         traces = []
         guards = []
         entry_points = {}
+        tracing_time = 0
+        tracing_times = []
         with open(arg, 'r') as f:
             line = f.readline()
             while line:
@@ -47,9 +50,13 @@ def parse_files(filenames, fragment=False):
                     traces = []
                     guards = []
                     entry_points = {}
+                    tracing_time = 0
                 m_times = times_re.match(line)
                 m_counts = counts_re.match(line.rstrip())
                 m_assembly  = assembly_re.match(line.rstrip())
+                m_tracing = tracing_re.match(line.rstrip())
+                m_backend = backend_re.match(line.rstrip())
+                
                 if line[0:4] == 'LOOP':
                     tokens = line.split()
                     looptoken = int(looptoken_re.match(tokens[1]).group(1))
@@ -71,6 +78,11 @@ def parse_files(filenames, fragment=False):
                 if m_assembly:
                     # set last trace's assembly count
                     traces[-1].assembly_count = int(m_assembly.group(1))
+                if m_tracing:
+                    tracing_time += float(m_tracing.group(1))
+                if m_backend:
+                    tracing_time += float(m_backend.group(1))
+                    tracing_times.append(tracing_time)
                 line = f.readline()
         all_traces.extend(traces)        
 
@@ -78,7 +90,7 @@ def parse_files(filenames, fragment=False):
         assert len(traces) > 0
         frags = {frag.label: frag for frag in reduce(operator.add, [trace.get_fragments(guards) for trace in traces])}
         name = os.path.basename(arg)
-        all_fragments.append(trace_utils.Program(name, frags, counts, entry_points, run_times))
+        all_fragments.append(trace_utils.Program(name, frags, counts, entry_points, run_times, tracing_times))
 
     if fragment:
         return all_traces
