@@ -1,3 +1,6 @@
 *~
 *.json
 .stack-work
+*.pyc
+*.tar.gz
+trans_benchmarks
