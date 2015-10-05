@@ -194,8 +194,8 @@
 
 (define start (case (start-point)
                 [(0) 0 ]
-                [(1) (/ (dim) 3) ]
-                [(2) (/ (* 2 (dim)) 3)]))
+                [(1) (quotient (dim) 3) ]
+                [(2) (quotient (* 2 (dim)) 3)]))
 ;; warmup
 (if (= (chunk-size) 0)
     (mandelbrot 255 (dim) (dim))
