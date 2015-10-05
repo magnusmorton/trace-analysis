@@ -11,6 +11,7 @@
 (define chunk-size (make-parameter 0))
 (define task? (make-parameter #f))
 (define dim (make-parameter 0))
+(define start-point (make-parameter 0))
 
 (command-line
  #:program "matmul"
@@ -20,7 +21,10 @@
  [("-c" "--chunk-size") cs "chunk size"
   (chunk-size (string->number cs))]
  [("-m" "--matrix-size") ms "matrix dimension"
-  (dim (string->number ms))])
+  (dim (string->number ms))]
+ [("-s" "--start-point") sp "start point"
+  (start-point (string->number sp))])
+
  
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; complex numbers
@@ -188,7 +192,10 @@
       (vector-set! v (+ i y_chunk) (vector-ref v_chunk i))))
   v)
 
-
+(define start (case (start-point)
+                [(0) 0 ]
+                [(1) (/ (dim) 3) ]
+                [(2) (/ (* 2 (dim)) 3)]))
 ;; warmup
 (if (= (chunk-size) 0)
     (mandelbrot 255 (dim) (dim))
@@ -197,4 +204,4 @@
 (when (task?)
   (if (= (chunk-size) 0)
       (time (mandelbrot 255 (dim) (dim)))
-      (time (chunk-mandelbrot/abs #t 255 (dim) (dim) (chunk-size) 0))))
+      (time (chunk-mandelbrot/abs #t 255 (dim) (dim) (chunk-size) start))))
