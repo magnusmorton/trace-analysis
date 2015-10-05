@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
-ns=( 1000 2000)
-sizes=(1 2 4 6 8 10 12 16 32 50 64 100 125 250 333 500 1000 2000)
-
+ns=( 2000 4000 8000 10000)
+sizes=(1 2 4 6 8 10 12 16 32 50 64 100 125 250 333 500 1000 2000 4000 8000)
+chunk=(0 1 2)
 for n in $ns
 do
     #untransformed warmup
@@ -24,7 +24,11 @@ do
 	#task
 	for i in {1..10}
 	do
-	    ../pycket/pycket-c mandel.rkt -c $size -t -m $n >> trans_benchmarks/mandeltranstask${n}x${size}
+	    for c in $chunk
+	    do
+		echo "chunk: ${c}"
+		../pycket/pycket-c mandel.rkt -c $size -t -m $n -s $c >> trans_benchmarks/mandeltranstask${n}x${size}
+	    done
 	done
     done
 done

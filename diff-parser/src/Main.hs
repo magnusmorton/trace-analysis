@@ -13,7 +13,7 @@ data Option = Option
              , euler :: Euler
              , file :: String}
 
-data Output = Cost | Time | Traces
+data Output = Cost | Time | Traces | Tracing
 
 data Euler = Chunk | Stride | None deriving Show
 
@@ -36,7 +36,7 @@ instance Read Euler where
 
 instance Read Output where
   readsPrec _ value = 
-    tryParse [("cost", Cost), ("time", Time), ("traces", Traces)]
+    tryParse [("cost", Cost), ("time", Time), ("traces", Traces), ("tracing", Tracing)]
     where tryParse [] = []    -- If there is nothing left to try, fail
           tryParse ((attempt, result):xs) =
             -- Compare the start of the string to be parsed to the
@@ -74,6 +74,9 @@ timematch s  = s =~ "TIME: (.*) microseconds"
 tracesmatch :: String -> (String,String,String,[String])
 tracesmatch s = s =~ "TRACE COUNT: (.*)"
 
+tracingmatch :: String -> (String,String,String,[String])
+tracingmatch s = s =~ "TRACING: (.*)" 
+
 sizematch :: Euler -> String -> (String, String, String, [String])
 sizematch None s = s =~ "([0-9]*)x[0-9]*"
 sizematch Chunk s = s =~ "([0-9]*)x[0-9]* chunk"
@@ -86,6 +89,7 @@ printOutput skip e o i l (x:xs) =
       (_,_,_,cost)  = costmatch $ C.unpack x
       (_,_,_,time) = timematch $ C.unpack x
       (_,_,_,traces) = tracesmatch $ C.unpack x
+      (_,_,_,tracing) = tracingmatch $ C.unpack x
   in do
     when (size /= []) (writeIORef i (read (size !! 0)))
     lastSize <- readIORef i
@@ -98,10 +102,13 @@ printOutput skip e o i l (x:xs) =
         Cost -> condOut cost lastSize l e skip
         Time -> condOut time lastSize l e skip
         Traces -> condOut traces lastSize l e skip
+        Tracing -> condOut tracing lastSize l e skip
         )
       else (case o of
         Cost -> when (cost /= []) (writeIORef skip False)
         Time -> when (time /= []) (writeIORef skip False)
+        Traces -> when (traces /= []) (writeIORef skip False)
+        Tracing -> when (tracing /= []) (writeIORef skip False)
            )
     printOutput skip e o i l xs
 printOutput _ _ _ _ _ [] = return ()
