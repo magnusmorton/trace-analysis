@@ -27,7 +27,7 @@ do
 	    for c in $chunk
 	    do
 		echo "chunk: ${c}"
-		../pycket/pycket-c mandel.rkt -c $size -t -m $n -s $c >> trans_benchmarks/mandeltranstask${n}x${size}
+		../pycket/pycket-c mandel.rkt -c $size -t -m $n -s $c >> trans_benchmarks/mandeltranstask${n}x${size}x${c}
 	    done
 	done
     done
