@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 sizes=( 1 2 4 6 8 10 12 16 32 50 64 100 125 250 333 500 1000 2000 )
 dims=( 1000 2000 )
-
+chunk=(0 1 2)
 DIR=trans_benchmarks
 
 for dim in $dims
@@ -16,7 +16,10 @@ do
 	if [[ $size -gt $dim ]]; then
 	    break
 	fi
-	echo "${dim}x${size}"
-	python differ.py "${DIR}/mandeltranswu${dim}x${size}" "${DIR}/mandeltranstask${dim}x${size}"
+	for c in $chunk
+	do
+	    echo "${dim}x${size}x${chunk}"
+	    python differ.py "${DIR}/mandeltranswu${dim}x${size}x${chunk}" "${DIR}/mandeltranstask${dim}x${size}x${chunk}"
+	done
     done
 done

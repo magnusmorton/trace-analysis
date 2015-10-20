@@ -11,7 +11,9 @@ data Option = Option
              { size :: Int
              , output :: Output
              , euler :: Euler
+             , mandel :: Int
              , file :: String}
+
 
 data Output = Cost | Time | Traces | Tracing
 
@@ -62,6 +64,10 @@ parser = Option
          ( long "euler"
            <> metavar "EULER"
            <> value None)
+         <*> option auto
+         ( long "mandel"
+           <> metavar "MANDEL"
+           <> value (-1) )
          <*> argument str (metavar "FILE")
 
 costmatch :: String -> (String,String,String,[String])
@@ -82,6 +88,9 @@ sizematch None s = s =~ "([0-9]*)x[0-9]*"
 sizematch Chunk s = s =~ "([0-9]*)x[0-9]* chunk"
 sizematch Stride s = s =~ "([0-9]*)x[0-9]* stride"
 
+
+mandelmatch :: String -> (String, String, String, [String])
+mandelmatch s = s =~ "([0-9]*)x[0-9]*x([0-9]*)"
 
 printOutput :: IORef Bool -> Euler -> Output -> IORef Int -> Int -> [B.ByteString] -> IO ()
 printOutput skip e o i l (x:xs) =
@@ -113,22 +122,52 @@ printOutput skip e o i l (x:xs) =
     printOutput skip e o i l xs
 printOutput _ _ _ _ _ [] = return ()
 
+
+printOutputMandel :: Int -> IORef Int -> Output -> IORef Int -> Int -> [B.ByteString] -> IO ()
+printOutputMandel chunk lcr o i l (x:xs) =
+  let (_,_,_,sizes) = mandelmatch $ C.unpack x
+      (_,_,_,cost)  = costmatch $ C.unpack x
+      (_,_,_,time) = timematch $ C.unpack x
+      (_,_,_,traces) = tracesmatch $ C.unpack x
+      (_,_,_,tracing) = tracingmatch $ C.unpack x
+  in do
+    when (sizes /= []) (writeIORef i (read (sizes !! 0) ) >> writeIORef lcr (read (sizes !! 1)))
+    lastSize <- readIORef i
+    lastChunk <- readIORef lcr
+    --putStrLn (show lastSize)
+
+   
+    --putStrLn (show bskip)
+    when (lastSize == l && lastChunk == chunk) (case o of
+                           Cost -> condOutMandel cost  
+                           Time -> condOutMandel time 
+                           Traces -> condOutMandel traces
+                           Tracing -> condOutMandel tracing )
+
+    printOutputMandel chunk lcr o i l xs
+printOutputMandel  _ _ _ _  _ [] = return ()
+
 condOut s lastSize l e skip = when (s /= [] && lastSize == l) ( putStrLn (s !! 0) >> case e of
                                                None -> return ()
                                                _ -> writeIORef skip True)
 
+condOutMandel s = when  (s /= []) ( putStrLn (s !! 0))
+
 main :: IO ()
 main = do
-  (Option size output euler file)  <- execParser (info parser fullDesc)
+  (Option size output euler mandel file)  <- execParser (info parser fullDesc)
   putStrLn (show size)
   putStrLn (show euler)
   contents <- B.readFile file
   i <- newIORef 0
   skip <- newIORef False
+  cr <- newIORef mandel
   case euler of
    Chunk -> return ()
    Stride -> writeIORef skip True >> putStrLn "FOO"
    None -> return ()
   putStrLn $ "Starting..." ++ (show euler)
-  printOutput skip euler output i size (C.lines contents)
+  if (mandel < 0)
+    then printOutput skip euler output i size (C.lines contents)
+    else printOutputMandel mandel cr output i size (C.lines contents)
   return ()
