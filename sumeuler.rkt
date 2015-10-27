@@ -18,7 +18,9 @@
  [("-s" "--stride") "stride?"
   (stride? #t)]
  [("-l" "--length") ls "length"
-  (len (string->number ls))])
+  (len (string->number ls))]
+ [("-s" "--start-point") sp "start point"
+  (start-point (string->number sp))])
  
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Sum of Euler's totient function
@@ -49,19 +51,24 @@
   (for/sum ([s partial-sums]) s))
 
 
+(define start (+ (quotient (* (start-point)) 10) lower))
+
 ;; warmup
-(define lower 6001)
-(if  (= (chunk-size) 0)
-     (sum-totient lower (+ lower (len)))
-     (if (stride?)
-         (stride-sum-totient lower (len) (chunk-size))
-         (chunk-sum-totient lower (len) (chunk-size))))
+(define lower 2000)
+(define max-chunk 8000)
+;; (if  (= (chunk-size) 0)
+;;      (sum-totient lower (+ lower (len)))
+;;      (if (stride?)
+;;          (stride-sum-totient lower (len) (chunk-size))
+;;          (chunk-sum-totient lower (len) (chunk-size))))
+
+(sum-totient lower (+ lower (len)))
 
 ;; task
 (when (task?)
   (if (= (chunk-size) 0)
       (time (sum-totient lower (+ lower (len))))
       (if (stride?)
-          (time (sum-totient lower (+ lower (len)) (chunk-size)))
-          (time (sum-totient lower (+ lower (chunk-size)))))))
+          (time (sum-totient start (+ start (len)) (chunk-size)))
+          (time (sum-totient start (+ start (chunk-size)))))))
      
