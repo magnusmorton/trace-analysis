@@ -54,7 +54,7 @@
 (define start (+ (quotient (* (start-point)) 10) lower))
 
 ;; warmup
-(define lower 2000)
+(define lower 1)
 (define max-chunk 8000)
 ;; (if  (= (chunk-size) 0)
 ;;      (sum-totient lower (+ lower (len)))

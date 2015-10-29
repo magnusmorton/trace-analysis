@@ -1,6 +1,7 @@
 #!/usr/bin/zsh
 sizes=(1 2 4 8 16 32 64 128 256 512 1024 2048 4096)
 lengths=(1000 2000 4000)
+chunks={0..9}
 # untransformed
 #warmup
 
@@ -28,7 +29,10 @@ do
 	#task
 	for i in {1..10}
 	do
-	    ../pycket/pycket-c  sumeuler.rkt  -c $size -t -l $length >> "trans_benchmarks/eulerchunktask${length}x${size}"
+	    for chunk in $chunk
+	    do
+		../pycket/pycket-c  sumeuler.rkt  -c $size -t -l $length -s $chunk >> trans_benchmarks/eulerchunktask${length}x${size}x${chunk}
+	    done
 	done
 	
     done
