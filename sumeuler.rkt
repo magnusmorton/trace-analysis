@@ -20,7 +20,7 @@
   (stride? #t)]
  [("-l" "--length") ls "length"
   (len (string->number ls))]
- [("-s" "--start-point") sp "start point"
+ [("-p" "--start-point") sp "start point"
   (start-point (string->number sp))])
  
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
