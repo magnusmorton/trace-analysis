@@ -7,6 +7,7 @@
 (define task? (make-parameter #f))
 (define stride? (make-parameter #f))
 (define len (make-parameter 4000))
+(define start-point (make-parameter 0))
 
 (command-line
  #:program "sumeuler"
