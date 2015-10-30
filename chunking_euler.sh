@@ -25,13 +25,13 @@ do
 	    break
 	fi
 	#warmup
-	../pycket/pycket-c  sumeuler.rkt -c $size -l $length > "trans_benchmarks/eulerchunkwu${length}x${size}"
+	../pycket/pycket-c  sumeuler.rkt -c $size -l $length > "trans_benchmarks/eulerirrwu${length}x${size}"
 	#task
 	for i in {1..10}
 	do
-	    for chunk in $chunk
+	    for chunk in $chunks
 	    do
-		../pycket/pycket-c  sumeuler.rkt  -c $size -t -l $length -p $chunk >> trans_benchmarks/eulerchunktask${length}x${size}x${chunk}
+		../pycket/pycket-c  sumeuler.rkt  -c $size -t -l $length -p $chunk >> trans_benchmarks/eulerirrtask${length}x${size}x${chunk}
 	    done
 	done
 	
