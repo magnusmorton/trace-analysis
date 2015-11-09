@@ -7,6 +7,7 @@
 (define task? (make-parameter #f))
 (define stride? (make-parameter #f))
 (define len (make-parameter 4000))
+(define start-point (make-parameter 0))
 
 (command-line
  #:program "sumeuler"
@@ -19,7 +20,7 @@
   (stride? #t)]
  [("-l" "--length") ls "length"
   (len (string->number ls))]
- [("-s" "--start-point") sp "start point"
+ [("-p" "--start-point") sp "start point"
   (start-point (string->number sp))])
  
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -50,11 +51,11 @@
                          (sum-totient lower upper stride)))
   (for/sum ([s partial-sums]) s))
 
-
+(define lower 1)
 (define start (+ (quotient (* (start-point)) 10) lower))
 
 ;; warmup
-(define lower 2000)
+
 (define max-chunk 8000)
 ;; (if  (= (chunk-size) 0)
 ;;      (sum-totient lower (+ lower (len)))
