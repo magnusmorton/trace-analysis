@@ -76,7 +76,9 @@
   (flvector-set! sqdists i (fl+ sum_of_squared_dists_i (squared-dist ctr_i x))))
 
 (define (merge-sums . sums)
-  (for/vector ([])))
+  (for/vector ([points (in-parallel sums)])
+    (for/flvector ([els (in-parallel points)])
+      (apply fl+ els))))
 
 ;; `sums` is a mutable vector of points, `x` is a point and
 ;; `i` an index into `sums`; returns nothing.
