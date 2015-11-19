@@ -1,6 +1,7 @@
 #lang racket/base
 
 (require racket/flonum)
+(require racket/list)
 (require (only-in racket/list argmin first shuffle take))
 (require (only-in racket/sequence sequence->list))
 
@@ -42,8 +43,9 @@
     (for/and ([ctr1_i (in-list ctrs1)] [ctr2_i (in-list ctrs2)])
       (flvector= (cdr ctr1_i) (cdr ctr2_i)))))
 
+;; varargs are passed in as a list, hence the apply
 (define (merge-hists . vs)
-  (for/vector ([xs (in-parallel vs)])
+  (for/vector ([xs (in-values-sequence (apply in-parallel vs))])
     (apply + xs)))
 
 ;; `hist` is a mutable vector of integers and `i` index into `hist`;
@@ -76,8 +78,8 @@
   (flvector-set! sqdists i (fl+ sum_of_squared_dists_i (squared-dist ctr_i x))))
 
 (define (merge-sums . sums)
-  (for/vector ([points (in-parallel sums)])
-    (for/flvector ([els (in-parallel points)])
+  (for/vector ([points (in-values-sequence (apply in-parallel sums))])
+    (for/flvector ([els (in-values-sequence (apply in-parallel points))])
       (apply fl+ els))))
 
 ;; `sums` is a mutable vector of points, `x` is a point and
@@ -94,7 +96,7 @@
   ;;    (fl+ s_j x_j))))
 
 
-(define (task-helper data k centroids)
+(define (task-helper data k centroids d)
   (define hist (for/vector #:length k ([i (in-range k)]) 0))
   (define sums (for/vector #:length k ([i (in-range k)])
                  (for/flvector #:length d ([j (in-range d)]) 0.0)))
@@ -194,6 +196,8 @@
   data)
 
 ;; main script
+
+(define h1 #(1 2 4) )
 (define args (vector->list (current-command-line-arguments)))
 (if (< (length args) 2)
   (printf "Usage: racket kmeans.rkt FILE K [TERM] [SEED]\n")
@@ -218,3 +222,7 @@
     (printf "max dist = ~a\n" maxdist)
     (printf "min dist = ~a\n" mindist)
     (printf "steps    = ~a\n" steps)))
+
+
+(define (test . ts )
+  (+ ts))
