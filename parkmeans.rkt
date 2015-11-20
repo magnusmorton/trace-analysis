@@ -148,11 +148,9 @@
   ;;   (update-sqdists! sqdists x i ctr_i)
   ;;   (update-maxsqdist! maxsqdist x i ctr_i)
   ;;   (update-minsqdist! minsqdist x i ctr_i))
-  (write "chunking")
-  (define chunk-size (/ (length data) n-chunks))
+    (define chunk-size (/ (length data) n-chunks))
   (define chunks (list-chunk data chunk-size))
-  (write "chunks made")
-  ;; there is a wat of doing this without list calls, but I can't think of it right now
+    ;; there is a wat of doing this without list calls, but I can't think of it right now
  
   
   (define-values (hists sumss) (unzip/values (for/list ([chunk chunks])
