@@ -2,8 +2,16 @@
 
 (require racket/flonum)
 (require racket/list)
+(require racket/match)
 (require (only-in racket/list argmin first shuffle take))
 (require (only-in racket/sequence sequence->list))
+;; (require "../CLOSURE/closure.rkt")
+;; (require "../task.rkt")
+;; (require "../worker.rkt")
+;; (require "../master.rkt")
+;; (require "../skels.rkt")
+
+(define mod-id #"parkmeans")
 
 
 (define (list-chunk lst n)
@@ -44,7 +52,7 @@
       (flvector= (cdr ctr1_i) (cdr ctr2_i)))))
 
 ;; varargs are passed in as a list, hence the apply
-(define (merge-hists . vs)
+(define (merge-hists  vs)
   (for/vector ([xs (in-values-sequence (apply in-parallel vs))])
     (apply + xs)))
 
@@ -77,7 +85,7 @@
   (define sum_of_squared_dists_i (flvector-ref sqdists i))
   (flvector-set! sqdists i (fl+ sum_of_squared_dists_i (squared-dist ctr_i x))))
 
-(define (merge-sums . sums)
+(define (merge-sums sums)
   (for/vector ([points (in-values-sequence (apply in-parallel sums))])
     (for/flvector ([els (in-values-sequence (apply in-parallel points))])
       (apply fl+ els))))
@@ -100,11 +108,22 @@
   (define hist (for/vector #:length k ([i (in-range k)]) 0))
   (define sums (for/vector #:length k ([i (in-range k)])
                  (for/flvector #:length d ([j (in-range d)]) 0.0)))
+  (write "helper" )
   (for ([x (in-list data)])
     (define-values (i ctr_i) (nearest-centroid centroids x))
     (update-hist! hist i)
     (update-sums! sums x i))
   (values hist sums))
+
+;; Stolen from http://matt.might.net/articles/higher-order-list-operations/
+
+(define (unzip/values lst)
+  (write   "unzipping")
+  (match lst
+    ['() (values '() '())]
+    [(cons (list a b) tl)
+     (define-values (as bs) (unzip/values tl))
+     (values (cons a as) (cons b bs))]))
 
 ;; `data` is a list of points, `k` is a positive integer and `centroids` is
 ;; a list of length `k` of pairs consisting of list index and center point.
@@ -114,7 +133,7 @@
 ;; * a vector of standard deviations from the center,
 ;; * a vector of maximum distances from the center,
 ;; * a vector of minimum distances from the center.
-(define (k-means-step data k centroids chunk-size)
+(define (k-means-step data k centroids n-chunks)
   (define d (flvector-length (cdr (first centroids))))
   ;; (define hist (for/vector #:length k ([i (in-range k)]) 0))
   ;; (define sums (for/vector #:length k ([i (in-range k)])
@@ -129,22 +148,36 @@
   ;;   (update-sqdists! sqdists x i ctr_i)
   ;;   (update-maxsqdist! maxsqdist x i ctr_i)
   ;;   (update-minsqdist! minsqdist x i ctr_i))
-  (define-values (hist sums) (task-helper data k centroids))
+  (write "chunking")
+  (define chunk-size (/ (length data) n-chunks))
+  (define chunks (list-chunk data chunk-size))
+  (write "chunks made")
+  ;; there is a wat of doing this without list calls, but I can't think of it right now
+ 
+  
+  (define-values (hists sumss) (unzip/values (for/list ([chunk chunks])
+                                    (write "hello")
+                                    (define-values (h s)(task-helper chunk k centroids d))
+                                    (list h s ))))
+  
+  ;(define-values  (hist sums) (task-helper data k centroids d))
+  (define hist (merge-hists hists))
+  (define sums (merge-sums sumss))
   (define new_centroids
     (for/list ([i (in-range k)] [c_i (in-vector hist)] [s_i (in-vector sums)])
       (if (zero? c_i)
-        ;; no points near i-th centroid; keep it stable
-        (list-ref centroids i)
-        ;; else: compute new centroid
-        (let ([ctr_i (for/flvector #:length d ([s_i_j (in-flvector s_i)])
-                       (fl/ s_i_j (->fl c_i)))])
-          (cons i ctr_i)))))
+          ;; no points near i-th centroid; keep it stable
+          (list-ref centroids i)
+          ;; else: compute new centroid
+          (let ([ctr_i (for/flvector #:length d ([s_i_j (in-flvector s_i)])
+                         (fl/ s_i_j (->fl c_i)))])
+            (cons i ctr_i)))))
   (define stdev
     (for/flvector #:length k
-      ([c_i (in-vector hist)] [sqd_i (in-flvector sqdists)])
+                  ([c_i (in-vector hist)] [sqd_i (in-flvector sqdists)])
       (if (zero? c_i)
-        -1.0  ;; no points near i-th centroid; ret stdev -1.0 as error value
-        (flsqrt (fl/ sqd_i (->fl c_i))))))
+          -1.0  ;; no points near i-th centroid; ret stdev -1.0 as error value
+          (flsqrt (fl/ sqd_i (->fl c_i))))))
   (define maxdist
     (for/flvector #:length k ([maxsqdist_i (in-flvector maxsqdist)])
       (flsqrt maxsqdist_i)))
@@ -162,13 +195,15 @@
 ;; * if `term` is -2, clustering terminates when the histogram is stable;
 ;; * if `term` is -1 (default), clustering terminates when both histogram
 ;;   and centroids are stable.
-(define (k-means data n_clusters [term -1])
+(define (k-means data n_clusters [term -1] [n-chunks 2] )
   (define centroids0 (random-choice data n_clusters))
   (define k (length centroids0))
   (define hist0 (for/vector #:length k ([i (in-range k)]) 0))
   (define (loop centroids old_hist n)
+    (write "pre")
     (define-values (new_centroids hist stdev maxdist mindist)
-      (k-means-step data k centroids))
+      (k-means-step data k centroids n-chunks))
+    (write "post")
     (cond
       [(eq? term n)
          (values centroids hist stdev maxdist mindist n)]
