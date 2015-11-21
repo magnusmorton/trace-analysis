@@ -240,32 +240,63 @@
 
 ;; main script
 
-(define h1 #(1 2 4) )
 (define args (vector->list (current-command-line-arguments)))
-(if (< (length args) 2)
-  (printf "Usage: racket kmeans.rkt FILE K [TERM] [SEED]\n")
-  (let ([file (list-ref args 0)]
-        [k    (string->number (list-ref args 1))]
-        [term (if (> (length args) 2) (string->number (list-ref args 2)) 0)]
-        [seed (if (> (length args) 3) (string->number (list-ref args 3)) 0)])
-    (when (> seed 0) (random-seed seed))
-    (printf "Parsing ...\n")
-    (define data (time (parse-data file)))
-    (define n (length data))
-    (define d (if (zero? n) 0 (flvector-length (first data))))
-    (printf "N   = ~a\n" n)
-    (printf "dim = ~a\n" d)
-    (printf "Clustering ...\n")
-    (define-values (centroids hist stdevs maxdist mindist steps)
-      (time (k-means data k term)))
-    (when (<= (* k d) 20) (printf "centroid = ~a\n" centroids))
-    (printf "k        = ~a\n" (length centroids))
-    (printf "count    = ~a\n" hist)
-    (printf "std dev  = ~a\n" stdevs)
-    (printf "max dist = ~a\n" maxdist)
-    (printf "min dist = ~a\n" mindist)
-    (printf "steps    = ~a\n" steps)))
+(let ([wargs (parse-worker-args args)])
+  (if wargs
+      (begin
+        (printf "worker ~a\n" (worker-args->list wargs))
+        (run-worker wargs))
+      (let ([margs (parse-master-args args)])
+        (when margs
+          (let* ([the-args (master-args-actual margs)]
+                 [file (list-ref the-args 0)]
+                 [k    (string->number (list-ref the-args 1))]
+                 [term (if (> (length the-args) 2) (string->number (list-ref the-args 2)) 0)]
+                 [seed (if (> (length the-args) 3) (string->number (list-ref the-args 3)) 0)]
+                 [workers (master-args-workers margs)]
+                 [n (length workers)])
+            (printf "master ~a\n" (map worker-args->list workers))
+            (start-workers (master-args-workers margs))
+            (when (> seed 0) (random-seed seed))
+            (printf "Parsing ...\n")
+            (define data (time (parse-data file)))
+            (define n (length data))
+            (define d (if (zero? n) 0 (flvector-length (first data))))
+            (printf "N   = ~a\n" n)
+            (printf "dim = ~a\n" d)
+            (printf "Clustering ...\n")
+            (define-values (centroids hist stdevs maxdist mindist steps)
+              (time (k-means data k term)))
+            (when (<= (* k d) 20) (printf "centroid = ~a\n" centroids))
+            (printf "k        = ~a\n" (length centroids))
+            (printf "count    = ~a\n" hist)
+            (printf "std dev  = ~a\n" stdevs)
+            (printf "max dist = ~a\n" maxdist)
+            (printf "min dist = ~a\n" mindist)
+            (printf "steps    = ~a\n" steps)
+            (stop-workers))))))
 
-
-(define (test . ts )
-  (+ ts))
+;; (if (< (length args) 2)
+;;   (printf "Usage: racket kmeans.rkt FILE K [TERM] [SEED]\n")
+;;   (let ([file (list-ref args 0)]
+;;         [k    (string->number (list-ref args 1))]
+;;         [term (if (> (length args) 2) (string->number (list-ref args 2)) 0)]
+;;         [seed (if (> (length args) 3) (string->number (list-ref args 3)) 0)]
+;;         )
+;;     (when (> seed 0) (random-seed seed))
+;;     (printf "Parsing ...\n")
+;;     (define data (time (parse-data file)))
+;;     (define n (length data))
+;;     (define d (if (zero? n) 0 (flvector-length (first data))))
+;;     (printf "N   = ~a\n" n)
+;;     (printf "dim = ~a\n" d)
+;;     (printf "Clustering ...\n")
+;;     (define-values (centroids hist stdevs maxdist mindist steps)
+;;       (time (k-means data k term)))
+;;     (when (<= (* k d) 20) (printf "centroid = ~a\n" centroids))
+;;     (printf "k        = ~a\n" (length centroids))
+;;     (printf "count    = ~a\n" hist)
+;;     (printf "std dev  = ~a\n" stdevs)
+;;     (printf "max dist = ~a\n" maxdist)
+;;     (printf "min dist = ~a\n" mindist)
+;;     (printf "steps    = ~a\n" steps)))
