@@ -5,11 +5,11 @@
 (require racket/match)
 (require (only-in racket/list argmin first shuffle take))
 (require (only-in racket/sequence sequence->list))
-;; (require "../CLOSURE/closure.rkt")
-;; (require "../task.rkt")
-;; (require "../worker.rkt")
-;; (require "../master.rkt")
-;; (require "../skels.rkt")
+(require "../CLOSURE/closure.rkt")
+(require "../task.rkt")
+(require "../worker.rkt")
+(require "../master.rkt")
+;;(require "../skels.rkt")
 
 (define mod-id #"parkmeans")
 
@@ -104,7 +104,7 @@
   ;;    (fl+ s_j x_j))))
 
 
-(define (task-helper data k centroids d)
+(define (task-helper k centroids d data)
   (define hist (for/vector #:length k ([i (in-range k)]) 0))
   (define sums (for/vector #:length k ([i (in-range k)])
                  (for/flvector #:length d ([j (in-range d)]) 0.0)))
@@ -113,7 +113,10 @@
     (define-values (i ctr_i) (nearest-centroid centroids x))
     (update-hist! hist i)
     (update-sums! sums x i))
-  (values hist sums))
+  (cons hist sums))
+
+(define task-helper/stat
+  (register-static task-helper mod-id))
 
 ;; Stolen from http://matt.might.net/articles/higher-order-list-operations/
 
@@ -124,6 +127,7 @@
     [(cons (list a b) tl)
      (define-values (as bs) (unzip/values tl))
      (values (cons a as) (cons b bs))]))
+
 
 ;; `data` is a list of points, `k` is a positive integer and `centroids` is
 ;; a list of length `k` of pairs consisting of list index and center point.
@@ -148,16 +152,22 @@
   ;;   (update-sqdists! sqdists x i ctr_i)
   ;;   (update-maxsqdist! maxsqdist x i ctr_i)
   ;;   (update-minsqdist! minsqdist x i ctr_i))
-    (define chunk-size (/ (length data) n-chunks))
+  (define chunk-size (/ (length data) n-chunks))
+  (define clo-kmeans (closure task-helper/stat k centroids d ))
   (define chunks (list-chunk data chunk-size))
     ;; there is a wat of doing this without list calls, but I can't think of it right now
  
-  
-  (define-values (hists sumss) (unzip/values (for/list ([chunk chunks])
-                                    (write "hello")
-                                    (define-values (h s)(task-helper chunk k centroids d))
-                                    (list h s ))))
-  
+  ;; PAR bit here. Thinking about it, this is trivially easy to turn into a par-map
+  (define tasks (for/list ([chunk chunks])
+                  (task (apply-closure clo-kmeans (to-closure chunk)))))
+  (define-values (hists sumss) (unzip/values (run-workpool tasks))) 
+
+  ;; SEQ version
+  ;; (define-values (hists sumss) (unzip/values
+  ;;                               (for/list ([chunk chunks])
+  ;;                                 (task-helper k centroids d chunk))))
+
+
   ;(define-values  (hist sums) (task-helper data k centroids d))
   (define hist (merge-hists hists))
   (define sums (merge-sums sumss))
