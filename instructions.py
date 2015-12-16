@@ -76,3 +76,20 @@ alloc_ops = ['NEW_OP',             #-> GcStruct, gcptrs inside are zeroed (not t
              'NEW_ARRAY_CLEAR_OP', #-> GcArray, fully zeroed
              'NEWSTR_OP',           #-> STR, the hash field is zeroed
              'NEWUNICODE_OP']      #-> UNICODE, the hash field is zeroed]
+
+
+string_ops = []
+
+call_ops = [  'CALL_OP',
+    'COND_CALL_OP', # a conditional call, with first argument as a condition
+    'CALL_ASSEMBLER_OP',  # call already compiled assembler
+    'CALL_MAY_FORCE_OP',
+    'CALL_LOOPINVARIANT_OP',
+    'CALL_RELEASE_GIL_OP',  # release the GIL and "close the stack" for asmgcc
+    'CALL_PURE_OP',             # removed before it's passed to the backend
+    'CALL_MALLOC_GC_OP',      # like CALL, but NULL => propagate MemoryError
+    'CALL_MALLOC_NURSERY_OP',  # nursery malloc, const number of bytes, zeroed
+    'CALL_MALLOC_NURSERY_VARSIZE_OP',
+    'CALL_MALLOC_NURSERY_VARSIZE_FRAME_OP']
+
+
