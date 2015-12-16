@@ -91,6 +91,10 @@ class Countable(object):
                 counts[3] += 1
             elif op == "GUARD:":
                 counts[4] += 1
+            elif op in instructions.string_ops:
+                counts[5] += 1
+            elif op in instructions.call_ops:
+                counts[6] += 1
             j += 1
         return counts
 
