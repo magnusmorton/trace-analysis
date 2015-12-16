@@ -214,6 +214,9 @@ class Program(object):
 
     def tracing_time(self):
         return sum(self.tracing)/len(self.tracing)
+
+    def net_time(self):
+        return self.average_time() - self.tracing_time()
     
     def hashed_counts(self):
         hashed_counts = {}

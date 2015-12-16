@@ -194,8 +194,9 @@ def main():
     start = [int(num) for num in args.start.split(",")]
     end = [int(num) for num in args.end.split(",")]
     step = [0,0,0,0,args.step]
-    average_times = trace_parser.calculate_average_times()
+#    average_times = trace_parser.calculate_average_times()
     programs = trace_parser.parse_files(args.filenames)
+    average_times  = {program.name: program.net_time() for program in programs}
     counts = {program.name: program.class_counts() for program in programs}
     if args.g:
         return ga_search(programs, average_times, counts)
