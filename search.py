@@ -81,7 +81,7 @@ def evaluate(population, programs,counts,  times):
 def initialize(size):
     population = []
     for _ in xrange(size):
-        population.append(Solution(random.sample(xrange(MAX), 5)))
+        population.append(Solution(random.sample(xrange(MAX), 7)))
     return population
 
 

@@ -9,6 +9,7 @@ loop_re = re.compile(r"LOOP - HASH: (?P<hash>.*) TT: (?P<tt>.*) COST: (?P<cost>.
 bridge_re = re.compile(r"BRIDGE -.*HASH: (?P<hash>.*) GUARD: *(?P<guard>\d*) COST: (?P<cost>.*)")
 counts_re = re.compile(r"loop.*([elb]) (?P<fragment>\d*) (?P<count>\d*)") 
 times_re = re.compile(r"cpu time: (\d*) real time: \d* gc time: \d*")
+bench_re = re.compile(r"RESULT-cpu: (\d*)\.\d")
 looptoken_re = re.compile(r"<Loop(\d*)>")
 assembly_re = re.compile(r"ASSEMBLY (\d*) from ops: \d*")
 tracing_re = re.compile(r"TRACING: (\d+\.\d+)")
@@ -52,6 +53,7 @@ def parse_files(filenames, fragment=False):
                     entry_points = {}
                     tracing_time = 0
                 m_times = times_re.match(line)
+                m_bench = bench_re.match(line)
                 m_counts = counts_re.match(line.rstrip())
                 m_assembly  = assembly_re.match(line.rstrip())
                 m_tracing = tracing_re.match(line.rstrip())
@@ -67,6 +69,8 @@ def parse_files(filenames, fragment=False):
                     traces.append(trace_utils.build_trace(f, guard=guard))
                 if m_times:
                     run_times.append(float(m_times.group(1)))
+                elif m_bench:
+                    run_times.append(float(m_bench.group(1)))
                 if m_counts:
                     count = float(m_counts.group("count"))
                     if count > 0:

@@ -78,14 +78,14 @@ alloc_ops = ['NEW_OP',             #-> GcStruct, gcptrs inside are zeroed (not t
              'NEWUNICODE_OP']      #-> UNICODE, the hash field is zeroed]
 
 
-string_ops = ['STRLEN/1',
-              'STRGETITEM/2',
-              'UNICODELEN/1',
-              'UNICODEGETITEM/2',
-              'STRSETITEM/3',
-              'UNICODESETITEM/3',
-              'COPYSTRCONTENT/5',       # src, dst, srcstart, dststart, length
-              'COPYUNICODECONTENT/5']
+string_ops = ['STRLEN_OP',
+              'STRGETITEM_OP',
+              'UNICODELEN_OP',
+              'UNICODEGETITEM_OP',
+              'STRSETITEM_OP',
+              'UNICODESETITEM_OP',
+              'COPYSTRCONTENT_OP',       # src, dst, srcstart, dststart, length
+              'COPYUNICODECONTENT_OP']
 
 call_ops = [  'CALL_OP',
               'COND_CALL_OP', # a conditional call, with first argument as a condition
@@ -98,7 +98,7 @@ call_ops = [  'CALL_OP',
               'CALL_MALLOC_NURSERY_OP',  # nursery malloc, const number of bytes, zeroed
               'CALL_MALLOC_NURSERY_VARSIZE_OP',
               'CALL_MALLOC_NURSERY_VARSIZE_FRAME_OP',
-              'COND_CALL_GC_WB/1d',       # [objptr] (for the write barrier)
-              'COND_CALL_GC_WB_ARRAY/2d']
+              'COND_CALL_GC_WB_OP',       # [objptr] (for the write barrier)
+              'COND_CALL_GC_WB_ARRAY_OP']
 
 

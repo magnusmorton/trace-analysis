@@ -157,7 +157,7 @@ class Fragment(Countable):
     def cost_with_model(self, i=None):
         if not Fragment.model:
             raise "Model not defined"
-        if Fragment.model == [0,0,0,0,0]:
+        if Fragment.model == [0,0,0,0,0,0,0]:
             return 1
         # order is [order, array, num, alloc, guards]
         if not i:
@@ -304,7 +304,7 @@ class Program(object):
         # sum all lists in frag_counts
         add_lists = lambda a, b: map(op.add, a, b)
         scal_mul = lambda s, a: [s*i for i in a]
-        return reduce( lambda x, y: add_lists(x, scal_mul(eqn[y], frag_counts[y])), eqn, [0,0,0,0,0])
+        return reduce( lambda x, y: add_lists(x, scal_mul(eqn[y], frag_counts[y])), eqn, [0,0,0,0,0,0,0])
 
             
 def build_trace(fd, guard=0, token=None):
