@@ -6,7 +6,7 @@
 (define (k-means data k #:initialization (init random-choice))
   (define (iteration centroids)     
     (map centroid (clusterize data centroids)))
-  (fixed-point iteration (init data k) #:same-test small-shift?))
+  (fixed-point iteration (init data k) #:same-test equal?))
  
 ;; Finds the centroid for a set of points
 (define (centroid pts)
@@ -63,3 +63,9 @@
   (let loop ([x x0] [fx (f x0)])
     (if (same? x fx) fx (loop fx (f fx)))))
 
+
+
+;;(k-means '(#(1 2) #( 3 1) #(1 1)) 2)
+;;(small-shift? '(#(1 2) #(3 5))  '( #(1 4) #( 1 3)))
+(define centroid #( 1 2))
+(map centroid (clusterize data centroids))

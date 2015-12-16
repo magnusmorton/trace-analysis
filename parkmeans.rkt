@@ -1,8 +1,17 @@
 #lang racket/base
 
 (require racket/flonum)
+(require racket/list)
+(require racket/match)
 (require (only-in racket/list argmin first shuffle take))
 (require (only-in racket/sequence sequence->list))
+(require "../CLOSURE/closure.rkt")
+(require "../task.rkt")
+(require "../worker.rkt")
+(require "../master.rkt")
+;;(require "../skels.rkt")
+
+(define mod-id #"parkmeans")
 
 
 (define (list-chunk lst n)
@@ -42,8 +51,9 @@
     (for/and ([ctr1_i (in-list ctrs1)] [ctr2_i (in-list ctrs2)])
       (flvector= (cdr ctr1_i) (cdr ctr2_i)))))
 
-(define (merge-hists . vs)
-  (for/vector ([xs (in-parallel vs)])
+;; varargs are passed in as a list, hence the apply
+(define (merge-hists  vs)
+  (for/vector ([xs (in-values-sequence (apply in-parallel vs))])
     (apply + xs)))
 
 ;; `hist` is a mutable vector of integers and `i` index into `hist`;
@@ -75,8 +85,10 @@
   (define sum_of_squared_dists_i (flvector-ref sqdists i))
   (flvector-set! sqdists i (fl+ sum_of_squared_dists_i (squared-dist ctr_i x))))
 
-(define (merge-sums . sums)
-  (for/vector ([])))
+(define (merge-sums sums)
+  (for/vector ([points (in-values-sequence (apply in-parallel sums))])
+    (for/flvector ([els (in-values-sequence (apply in-parallel points))])
+      (apply fl+ els))))
 
 ;; `sums` is a mutable vector of points, `x` is a point and
 ;; `i` an index into `sums`; returns nothing.
@@ -92,15 +104,30 @@
   ;;    (fl+ s_j x_j))))
 
 
-(define (task-helper data k centroids)
+(define (task-helper k centroids d data)
   (define hist (for/vector #:length k ([i (in-range k)]) 0))
   (define sums (for/vector #:length k ([i (in-range k)])
                  (for/flvector #:length d ([j (in-range d)]) 0.0)))
+  (write "helper" )
   (for ([x (in-list data)])
     (define-values (i ctr_i) (nearest-centroid centroids x))
     (update-hist! hist i)
     (update-sums! sums x i))
-  (values hist sums))
+  (cons hist sums))
+
+(define task-helper/stat
+  (register-static task-helper mod-id))
+
+;; Stolen from http://matt.might.net/articles/higher-order-list-operations/
+
+(define (unzip/values lst)
+  (write   "unzipping")
+  (match lst
+    ['() (values '() '())]
+    [(cons (list a b) tl)
+     (define-values (as bs) (unzip/values tl))
+     (values (cons a as) (cons b bs))]))
+
 
 ;; `data` is a list of points, `k` is a positive integer and `centroids` is
 ;; a list of length `k` of pairs consisting of list index and center point.
@@ -110,7 +137,7 @@
 ;; * a vector of standard deviations from the center,
 ;; * a vector of maximum distances from the center,
 ;; * a vector of minimum distances from the center.
-(define (k-means-step data k centroids chunk-size)
+(define (k-means-step data k centroids n-chunks)
   (define d (flvector-length (cdr (first centroids))))
   ;; (define hist (for/vector #:length k ([i (in-range k)]) 0))
   ;; (define sums (for/vector #:length k ([i (in-range k)])
@@ -125,22 +152,40 @@
   ;;   (update-sqdists! sqdists x i ctr_i)
   ;;   (update-maxsqdist! maxsqdist x i ctr_i)
   ;;   (update-minsqdist! minsqdist x i ctr_i))
-  (define-values (hist sums) (task-helper data k centroids))
+  (define chunk-size (/ (length data) n-chunks))
+  (define clo-kmeans (closure task-helper/stat k centroids d ))
+  (define chunks (list-chunk data chunk-size))
+    ;; there is a wat of doing this without list calls, but I can't think of it right now
+ 
+  ;; PAR bit here. Thinking about it, this is trivially easy to turn into a par-map
+  (define tasks (for/list ([chunk chunks])
+                  (task (apply-closure clo-kmeans (to-closure chunk)))))
+  (define-values (hists sumss) (unzip/values (run-workpool tasks))) 
+
+  ;; SEQ version
+  ;; (define-values (hists sumss) (unzip/values
+  ;;                               (for/list ([chunk chunks])
+  ;;                                 (task-helper k centroids d chunk))))
+
+
+  ;(define-values  (hist sums) (task-helper data k centroids d))
+  (define hist (merge-hists hists))
+  (define sums (merge-sums sumss))
   (define new_centroids
     (for/list ([i (in-range k)] [c_i (in-vector hist)] [s_i (in-vector sums)])
       (if (zero? c_i)
-        ;; no points near i-th centroid; keep it stable
-        (list-ref centroids i)
-        ;; else: compute new centroid
-        (let ([ctr_i (for/flvector #:length d ([s_i_j (in-flvector s_i)])
-                       (fl/ s_i_j (->fl c_i)))])
-          (cons i ctr_i)))))
+          ;; no points near i-th centroid; keep it stable
+          (list-ref centroids i)
+          ;; else: compute new centroid
+          (let ([ctr_i (for/flvector #:length d ([s_i_j (in-flvector s_i)])
+                         (fl/ s_i_j (->fl c_i)))])
+            (cons i ctr_i)))))
   (define stdev
     (for/flvector #:length k
-      ([c_i (in-vector hist)] [sqd_i (in-flvector sqdists)])
+                  ([c_i (in-vector hist)] [sqd_i (in-flvector sqdists)])
       (if (zero? c_i)
-        -1.0  ;; no points near i-th centroid; ret stdev -1.0 as error value
-        (flsqrt (fl/ sqd_i (->fl c_i))))))
+          -1.0  ;; no points near i-th centroid; ret stdev -1.0 as error value
+          (flsqrt (fl/ sqd_i (->fl c_i))))))
   (define maxdist
     (for/flvector #:length k ([maxsqdist_i (in-flvector maxsqdist)])
       (flsqrt maxsqdist_i)))
@@ -158,13 +203,15 @@
 ;; * if `term` is -2, clustering terminates when the histogram is stable;
 ;; * if `term` is -1 (default), clustering terminates when both histogram
 ;;   and centroids are stable.
-(define (k-means data n_clusters [term -1])
+(define (k-means data n_clusters [term -1] [n-chunks 2] )
   (define centroids0 (random-choice data n_clusters))
   (define k (length centroids0))
   (define hist0 (for/vector #:length k ([i (in-range k)]) 0))
   (define (loop centroids old_hist n)
+    (write "pre")
     (define-values (new_centroids hist stdev maxdist mindist)
-      (k-means-step data k centroids))
+      (k-means-step data k centroids n-chunks))
+    (write "post")
     (cond
       [(eq? term n)
          (values centroids hist stdev maxdist mindist n)]
@@ -192,27 +239,64 @@
   data)
 
 ;; main script
+
 (define args (vector->list (current-command-line-arguments)))
-(if (< (length args) 2)
-  (printf "Usage: racket kmeans.rkt FILE K [TERM] [SEED]\n")
-  (let ([file (list-ref args 0)]
-        [k    (string->number (list-ref args 1))]
-        [term (if (> (length args) 2) (string->number (list-ref args 2)) 0)]
-        [seed (if (> (length args) 3) (string->number (list-ref args 3)) 0)])
-    (when (> seed 0) (random-seed seed))
-    (printf "Parsing ...\n")
-    (define data (time (parse-data file)))
-    (define n (length data))
-    (define d (if (zero? n) 0 (flvector-length (first data))))
-    (printf "N   = ~a\n" n)
-    (printf "dim = ~a\n" d)
-    (printf "Clustering ...\n")
-    (define-values (centroids hist stdevs maxdist mindist steps)
-      (time (k-means data k term)))
-    (when (<= (* k d) 20) (printf "centroid = ~a\n" centroids))
-    (printf "k        = ~a\n" (length centroids))
-    (printf "count    = ~a\n" hist)
-    (printf "std dev  = ~a\n" stdevs)
-    (printf "max dist = ~a\n" maxdist)
-    (printf "min dist = ~a\n" mindist)
-    (printf "steps    = ~a\n" steps)))
+(let ([wargs (parse-worker-args args)])
+  (if wargs
+      (begin
+        (printf "worker ~a\n" (worker-args->list wargs))
+        (run-worker wargs))
+      (let ([margs (parse-master-args args)])
+        (when margs
+          (let* ([the-args (master-args-actual margs)]
+                 [file (list-ref the-args 0)]
+                 [k    (string->number (list-ref the-args 1))]
+                 [term (if (> (length the-args) 2) (string->number (list-ref the-args 2)) 0)]
+                 [seed (if (> (length the-args) 3) (string->number (list-ref the-args 3)) 0)]
+                 [workers (master-args-workers margs)]
+                 [n (length workers)])
+            (printf "master ~a\n" (map worker-args->list workers))
+            (start-workers (master-args-workers margs))
+            (when (> seed 0) (random-seed seed))
+            (printf "Parsing ...\n")
+            (define data (time (parse-data file)))
+            (define n (length data))
+            (define d (if (zero? n) 0 (flvector-length (first data))))
+            (printf "N   = ~a\n" n)
+            (printf "dim = ~a\n" d)
+            (printf "Clustering ...\n")
+            (define-values (centroids hist stdevs maxdist mindist steps)
+              (time (k-means data k term)))
+            (when (<= (* k d) 20) (printf "centroid = ~a\n" centroids))
+            (printf "k        = ~a\n" (length centroids))
+            (printf "count    = ~a\n" hist)
+            (printf "std dev  = ~a\n" stdevs)
+            (printf "max dist = ~a\n" maxdist)
+            (printf "min dist = ~a\n" mindist)
+            (printf "steps    = ~a\n" steps)
+            (stop-workers))))))
+
+;; (if (< (length args) 2)
+;;   (printf "Usage: racket kmeans.rkt FILE K [TERM] [SEED]\n")
+;;   (let ([file (list-ref args 0)]
+;;         [k    (string->number (list-ref args 1))]
+;;         [term (if (> (length args) 2) (string->number (list-ref args 2)) 0)]
+;;         [seed (if (> (length args) 3) (string->number (list-ref args 3)) 0)]
+;;         )
+;;     (when (> seed 0) (random-seed seed))
+;;     (printf "Parsing ...\n")
+;;     (define data (time (parse-data file)))
+;;     (define n (length data))
+;;     (define d (if (zero? n) 0 (flvector-length (first data))))
+;;     (printf "N   = ~a\n" n)
+;;     (printf "dim = ~a\n" d)
+;;     (printf "Clustering ...\n")
+;;     (define-values (centroids hist stdevs maxdist mindist steps)
+;;       (time (k-means data k term)))
+;;     (when (<= (* k d) 20) (printf "centroid = ~a\n" centroids))
+;;     (printf "k        = ~a\n" (length centroids))
+;;     (printf "count    = ~a\n" hist)
+;;     (printf "std dev  = ~a\n" stdevs)
+;;     (printf "max dist = ~a\n" maxdist)
+;;     (printf "min dist = ~a\n" mindist)
+;;     (printf "steps    = ~a\n" steps)))
