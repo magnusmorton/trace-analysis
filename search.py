@@ -1,6 +1,7 @@
 import argparse
 import copy
 import numpy as np
+from scipy.optimize import nnls
 import time
 import random
 import signal
@@ -179,7 +180,16 @@ def monte_carlo_validation(programs, average_times, counts):
         print ""
         ga_search(programs_subset, average_times, counts)
 
+def least_squares(programs):
+    coeffs = [prog.class_counts() for prog in programs]
+    times = [prog.net_time() for prog in programs]
+    a = np.array(coeffs)
+    b = np.array(times)
 
+    x = nnls(a, b)
+    print x
+    return 0
+        
 def main():
     parser = argparse.ArgumentParser(description="Run cost analysis")
     parser.add_argument("filenames", metavar="<file>", nargs = '+')
@@ -189,6 +199,7 @@ def main():
     parser.add_argument("--step", "-t", default=1, type=int)
     parser.add_argument("-g",action='store_true')
     parser.add_argument("-r", action='store_true')
+    parser.add_argument("-n", action='store_true')
     
     args = parser.parse_args()
     start = [int(num) for num in args.start.split(",")]
@@ -202,6 +213,8 @@ def main():
         return ga_search(programs, average_times, counts)
     elif args.r:
         return monte_carlo_validation(programs, average_times, counts)
+    elif args.n:
+        return least_squares(programs)
     best = None
     def handler(s, frame):
         print "Terminated... Current best:", best
