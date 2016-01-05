@@ -31,7 +31,7 @@ do
 	do
 	    for i in {1..10}
 	    do
-		../pycket/pycket-c  sumeuler.rkt  -c $size -t -l $length -p $c >> "trans_benchmarks/eulerchunktask${length}x${size}x${c}"
+		../pycket/pycket-c  sumeuler.rkt  -c $size -t -l $length -p $c >> "trans_benchmarks/eulerchunk${length}x${size}x${c}"
 	    done
 	done
 
