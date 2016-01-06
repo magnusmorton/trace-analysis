@@ -144,6 +144,6 @@
 (k-means-step/abs (flvector-length (first data)) (k) centroids0 )
 
 (when (task?)
-  (k-means-step/abs (flvector-length (first data)) (k) centroids0))
+  (time (k-means-step/abs (flvector-length (first data)) (k) centroids0)))
 
 
