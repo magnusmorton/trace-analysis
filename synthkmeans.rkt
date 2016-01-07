@@ -137,10 +137,12 @@
 
 
 ;;warmup
+
 (define data (parse-data (filename)))
 (set-my-chunk! data  (chunk-size))
 
 (define centroids0 (random-choice data (k)))
+(k-means-step/abs (flvector-length (first data)) (k) centroids0 )
 (k-means-step/abs (flvector-length (first data)) (k) centroids0 )
 
 (when (task?)
