@@ -151,13 +151,25 @@ def super_graph(filenames):
     names = [program.name for program in programs]
     superimpose(costsc,costsw, times, names)
     sys.exit(0)
+
+def unfiltered_graph(costs, times):
+    coeffs = np.polyfit(costs, times,1)
+    fit_fn = np.poly1d(coeffs)
+    print fit_fn
+    plt.ylabel("Execution time ($\\mu s$)")
+    plt.xlabel("Cost")
+    plt.plot(costs, times, 'xg')
+    plt.plot(costs, times, fit_fn(costs), '-b')
+    plt.savefig("model_scatter.png")
     
+
 def main():
     parser = argparse.ArgumentParser(description="Run cost analysis")
     parser.add_argument("filenames", metavar="<file>", nargs = '+')
     parser.add_argument("--model", "-m",  default="cmw")
     parser.add_argument( "-k",  action='store_true')
     parser.add_argument( "-s",  action='store_true')
+    parser.add_argument( "-n", action='store_true')
     
 
     args = parser.parse_args()
@@ -174,15 +186,24 @@ def main():
         model = [211,34,590,9937,14]
     else:
         model = [int(num) for num in args.model.split(",")]
-    average_times = trace_parser.calculate_average_times()
+   
     programs = trace_parser.parse_files(args.filenames)
     counts = {program.name: program.class_counts() for program in programs}
-    
+    average_times = []
+
+    if args.n:
+        times = [program.net_time() for program in programs]
+    else:
+        average_times = trace_parser.calculate_average_times()
+        
     trace_utils.Fragment.model = model
     costs = [dot(counts[program.name], model) for program in programs]
     if model == [0,0,0,0,0]:
         print "FOOOOOO"
         costs = [program.cost() for program in programs]
+
+    if args.n:
+        unfiltered_graph(costs, times)
     times = [average_times[program.name] for program in programs]
     names = [program.name for program in programs]
     graph(costs, times, names, args.model)
