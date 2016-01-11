@@ -82,9 +82,11 @@ def chunks(programs, model, args, argstr):
         print timesout
         print ysW
             
-        print "k", min(ysW)
+        print "k w", min(ysW)
         print "k", min(ysC)
         print "k", min(ys0)
+        
+        print "variance:", max(ysW) - min(ysW)
         if args.title.lower() != "fibonacci":
             plt.xscale("log")
         plt.plot(xcols, ysW, '-xg', label="$CM_W$")
@@ -110,6 +112,31 @@ def chunks(programs, model, args, argstr):
     plt.yticks(yticks)
     plt.savefig(args.title.replace(" ", "_")+ ".png")
 
+
+def graph_util(args):
+    if args.title.lower() != "fibonacci":
+        plt.xscale("log")
+    plt.legend()
+    # xticks, _ = plt.xticks()
+    # # shift half a step to the left
+    # # x0 - (x1 - x0) / 2 = (3 * x0 - x1) / 2
+    # xmin = (xticks[0] - xticks[1])/2.
+    # # shaft half a step to the right
+    # xmax = (xticks[-1] - xticks[-2])/2.
+    # plt.xlim(xmin, xmax)
+    # plt.xticks(xticks)
+
+    yticks, _ = plt.yticks()
+    # shift half a step to the left
+    # x0 - (x1 - x0) / 2 = (3 * x0 - x1) / 2
+    ymin = (3*yticks[0] - yticks[1])/2.
+    # shaft half a step to the right
+    ymax = (3*yticks[-1] - yticks[-2])/2.
+    plt.ylabel("$k$")
+    plt.xlabel(args.x)
+    plt.ylim(ymin, ymax)
+    plt.yticks(yticks)
+    
 def main():
     parser = argparse.ArgumentParser(description="The DIFFER")
     parser.add_argument("filenames", metavar="<file>", nargs = '+')
@@ -181,10 +208,10 @@ def main():
     print times
     print xcols
     plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
-    plt.ylabel("scaled $k$")
+    plt.ylabel("$k$")
     
     plt.title(args.title)
-    plt.xlabel(args.x)
+
     ysW = [times[xcol]/costsW[xcol] for xcol in xcols]
     ysC = [times[xcol]/costsC[xcol] for xcol in xcols]
     ys0 = [times[xcol]/costs0[xcol] for xcol in xcols]
@@ -195,37 +222,24 @@ def main():
     zeroratio = myw / max(ys0)
     scaledysC = [cratio * i + 0.5 for i in ysC]
     scaledys0 = [zeroratio * i - 0.5 for i in ys0]
-    print "k", min(ysW)
-    print "k", min(ysC)
-    print "k", min(ys0)
-    if args.title.lower() != "fibonacci":
-        plt.xscale("log")
-    plt.plot(xcols, ysW, '-xg', label="$CM_W$")
-    plt.plot(xcols, scaledysC, '-.ob', label="$CM_C$")
-    plt.plot(xcols, scaledys0, '--+r', label="$CM_0$")
-
-    xticks, xticklabels = plt.xticks()
-    # shift half a step to the left
-    # x0 - (x1 - x0) / 2 = (3 * x0 - x1) / 2
-    xmin = (3*xticks[0] - xticks[1])/2.
-    # shaft half a step to the right
-    xmax = (3*xticks[-1] - xticks[-2])/2.
-    plt.xlim(xmin, xmax)
-    plt.xticks(xticks)
-
-    yticks, yticklabels = plt.yticks()
-    # shift half a step to the left
-    # x0 - (x1 - x0) / 2 = (3 * x0 - x1) / 2
-    ymin = (3*yticks[0] - yticks[1])/2.
-    # shaft half a step to the right
-    ymax = (3*yticks[-1] - yticks[-2])/2.
-    plt.ylim(ymin, ymax)
-    plt.yticks(yticks)
-    legendloc = 1
-    if args.title[0:6].lower() == "stride":
-        legendloc = 4
-    plt.legend(loc=legendloc)
+    print "k w", min(ysW)
+    print "k c", min(ysC)
+    print "k 0", min(ys0)
+    print "variance:", max(ysW) - min(ysW)
     
+    plt.subplot(311)
+    plt.plot(xcols, ysW, '-xg', label="$CM_W$")
+    graph_util(args)
+
+    plt.subplot(312)
+    plt.plot(xcols, ysC, '-.ob', label="$CM_C$")
+    graph_util(args)
+
+    plt.subplot(313)
+    plt.plot(xcols, ys0, '--+r', label="$CM_0$")
+    graph_util(args)
+
+    plt.suptitle(args.title)
     plt.savefig(args.title.replace(" ", "_") + ".png")
     #plt.show()
     
