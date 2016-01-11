@@ -78,7 +78,7 @@ class Countable(object):
         if not i:
             i = len(self.ops)
         j = 0
-        counts = [0]*5
+        counts = [0]*7
         while j < i:
             op = self.ops[j].split()[0]
             if op in instructions.object_ops:
@@ -210,6 +210,7 @@ class Program(object):
 
 
     def average_time(self):
+        print self.name
         return sum(self.times)/len(self.times)
 
     def tracing_time(self):
@@ -234,7 +235,9 @@ class Program(object):
 
         add_lists = lambda a, b: map(op.add, a, b)
         scal_mul = lambda s, a: [s*i for i in a]
-        return reduce( lambda x, y: add_lists(x, scal_mul(counts[y], frag_counts[y])), counts, [0,0,0,0,0])
+        print counts
+        print frag_counts
+        return reduce( lambda x, y: add_lists(x, scal_mul(counts[y], frag_counts[y])), counts, [0,0,0,0,0,0,0])
         
     
     def cost(self):

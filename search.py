@@ -82,7 +82,7 @@ def evaluate(population, programs,counts,  times):
 def initialize(size):
     population = []
     for _ in xrange(size):
-        population.append(Solution(random.sample(xrange(MAX), 7)))
+        population.append(Solution(random.sample(xrange(MAX), 5)))
     return population
 
 
@@ -181,7 +181,7 @@ def monte_carlo_validation(programs, average_times, counts):
         ga_search(programs_subset, average_times, counts)
 
 def least_squares(programs):
-    coeffs = [prog.class_counts() for prog in programs]
+    coeffs = [prog.class_counts()[0:5] for prog in programs]
     times = [prog.net_time() for prog in programs]
     a = np.array(coeffs)
     b = np.array(times)
@@ -207,8 +207,13 @@ def main():
     step = [0,0,0,0,args.step]
 #    average_times = trace_parser.calculate_average_times()
     programs = trace_parser.parse_files(args.filenames)
+    print "FOOOOO"
+    for program in programs:
+        print "foo"
+        if program.net_time() > 20000000:
+            print program.name
     average_times  = {program.name: program.net_time() for program in programs}
-    counts = {program.name: program.class_counts() for program in programs}
+    counts = {program.name: program.class_counts()[0:5] for program in programs}
     if args.g:
         return ga_search(programs, average_times, counts)
     elif args.r:

@@ -1,7 +1,7 @@
 #!/usr/bin/zsh
 sizes=(1 2 4 8 20 50 100 125 250 500 1000 2000 4000)
 lengths=(4000)
-chunks={0..9}
+chunks=(0..9)
 # untransformed
 #warmup
 

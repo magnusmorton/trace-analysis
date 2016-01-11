@@ -9,6 +9,8 @@ import trace as trace_utils
 import string
 import pdb
 
+import search
+
 dot = lambda x,y: sum(a*b for a,b in izip(x,y))
 
 def produce_gnuplot_file(costs, times, names):
@@ -156,10 +158,13 @@ def unfiltered_graph(costs, times):
     coeffs = np.polyfit(costs, times,1)
     fit_fn = np.poly1d(coeffs)
     print fit_fn
+    print "rsquared", search.fit(costs, times)
     plt.ylabel("Execution time ($\\mu s$)")
+    plt.title("Plot using parameters found through linear regression")
     plt.xlabel("Cost")
     plt.plot(costs, times, 'xg')
-    plt.plot(costs, times, fit_fn(costs), '-b')
+    plt.plot(costs, fit_fn(costs), '-b')
+    #plt.show()
     plt.savefig("model_scatter.png")
     
 
@@ -185,11 +190,14 @@ def main():
     elif args.model == "cmw":
         model = [211,34,590,9937,14]
     else:
-        model = [int(num) for num in args.model.split(",")]
+        model = [float(num) for num in args.model.split(",")]
    
     programs = trace_parser.parse_files(args.filenames)
     counts = {program.name: program.class_counts() for program in programs}
     average_times = []
+    for program in programs:
+        if program.net_time() > 20000000:
+            print "foo", program.name
 
     if args.n:
         times = [program.net_time() for program in programs]
@@ -200,6 +208,7 @@ def main():
     costs = [dot(counts[program.name], model) for program in programs]
     if model == [0,0,0,0,0]:
         print "FOOOOOO"
+        trace_utils.Fragment.model = [0,0,0,0,0,0,0]
         costs = [program.cost() for program in programs]
 
     if args.n:

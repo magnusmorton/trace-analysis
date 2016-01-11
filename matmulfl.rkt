@@ -130,7 +130,7 @@
 ;; task
 ;;(time 
 (when (task?)
-  (if (= (chunk-size) 0)
+  (if (= (chunk-size) 0)d
       (time (flmat-* mat1 mat2)) 
       (time (flmat-*t cluster mat2t))))
 
