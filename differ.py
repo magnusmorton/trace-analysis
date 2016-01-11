@@ -19,7 +19,16 @@ chunk_re = re.compile(r".*x(\d*)x.*")
 cm0 = [0,0,0,0,0]
 cmC = [1,1,1,1,1]
 cmW = [0,0,4.884e-4,4.797e-3,4.623e-4]
-def chunks(programs, model, args, argstr):
+
+def output(ysW, ysC, ys0, name):
+    with open(name + ".dat", 'w') as f:
+        f.write("k W %(k)d\n" % {"k":min(ysW)})
+        f.write("k C %(k)d\n" % {"k":min(ysC)})
+        f.write("k 0 %(k)d\n" % {"k":min(ys0)})
+        f.write("range: %(r)d\n" % {"r":max(ysW) - min(ysW)})
+    
+
+def chunks(programs, args):
     times = [{} for _ in xrange(3)]
     costsW = [{} for _ in xrange(3)]
     costsC = [{} for _ in xrange(3)]
@@ -57,26 +66,22 @@ def chunks(programs, model, args, argstr):
     plt.title(args.title)
     plt.xlabel("chunk size")
     if args.a:
-        ys0 = [time/cost for time,cost in izip(times[0], costs[0])]
-        print ys0
-        ys1 = [time/cost for time,cost in izip(times[1], costs[1])]
-        print ys1
-        ys2 = [time/cost for time,cost in izip(times[2], costs[2])]
-   
+        ys0 = [times[0][xcol]/costsW[0][xcol] for xcol in xcols]
+        ys1 = [times[1][xcol]/costsW[1][xcol] for xcol in xcols]
+        ys2 = [times[2][xcol]/costsW[2][xcol] for xcol in xcols]   
+
         print "k", min(ys0), min(ys1), min(ys2)
-        plt.plot(xcols, ys0, '-g',  mfc='none')
-        plt.plot(xcols, ys1, '-r')
-        plt.plot(xcols, ys2, '-b')
+        plt.plot(xcols, ys0, '-xg', label="Chunk 0")
+        plt.plot(xcols, ys1, '-.ob', label="Chunk 1")
+        plt.plot(xcols, ys2, '--+r', label="Chunk 2")
+        graph_util(args)
+        plt.title(args.title + " 3 chunks")
+        plt.savefig(args.title.replace(" ", "_")+ "irr.png")
     else:
         plt.xlabel(args.x)
         ysW = [times[1][xcol]/costsW[1][xcol] for xcol in xcols]
         ysC = [times[1][xcol]/costsC[1][xcol] for xcol in xcols]
         ys0 = [times[1][xcol]/costs0[1][xcol] for xcol in xcols]
-        myw = max(ysW)
-        cratio = myw / max(ysC)
-        zeroratio = myw / max(ys0)
-        scaledysC = [cratio * i + myw*0.1 for i in ysC]
-        scaledys0 = [zeroratio * i - myw*0.1  for i in ys0]
         print xcols
         timesout = [times[1][xcol] for xcol in xcols]
         print timesout
@@ -87,30 +92,21 @@ def chunks(programs, model, args, argstr):
         print "k", min(ys0)
         
         print "variance:", max(ysW) - min(ysW)
-        if args.title.lower() != "fibonacci":
-            plt.xscale("log")
+        output(ysW, ysC, ys0, args.title.replace(" ", "_"))
+        plt.subplot(311)
         plt.plot(xcols, ysW, '-xg', label="$CM_W$")
-        plt.plot(xcols, scaledysC, '-.ob', label="$CM_C$")
-        plt.plot(xcols, scaledys0, '--+r', label="$CM_0$")
-         
-    xticks, xticklabels = plt.xticks()
-    # shift half a step to the left
-    # x0 - (x1 - x0) / 2 = (3 * x0 - x1) / 2
-    xmin = (3*xticks[0] - xticks[1])/2.
-    # shaft half a step to the right
-    xmax = (3*xticks[-1] - xticks[-2])/2.
-    plt.xlim(xmin, xmax)
-    plt.xticks(xticks)
+        graph_util(args)
+
+        plt.subplot(312)
+        plt.plot(xcols, ysC, '-.ob', label="$CM_C$")
+        graph_util(args)
         
-    yticks, yticklabels = plt.yticks()
-    # shift half a step to the left
-    # x0 - (x1 - x0) / 2 = (3 * x0 - x1) / 2
-    ymin = (3*yticks[0] - yticks[1])/2.
-    # shaft half a step to the right
-    ymax = (3*yticks[-1] - yticks[-2])/2.
-    plt.ylim(ymin, ymax)
-    plt.yticks(yticks)
-    plt.savefig(args.title.replace(" ", "_")+ ".png")
+        plt.subplot(313)
+        plt.plot(xcols, ys0, '--+r', label="$CM_0$")
+        graph_util(args)
+
+        plt.suptitle(args.title)
+        plt.savefig(args.title.replace(" ", "_")+ ".png")
 
 
 def graph_util(args):
@@ -164,7 +160,7 @@ def main():
     programs = trace_parser.parse_files(args.filenames)
     
     if args.c:
-        return chunks(programs, model, args, argstr)
+        return chunks(programs, args)
     times = {}
     costs0 = {}
     costsC = {}
@@ -212,21 +208,18 @@ def main():
     
     plt.title(args.title)
 
+    if "stride" in args.title.lower():
+        xcols = xcols[0:-1]
     ysW = [times[xcol]/costsW[xcol] for xcol in xcols]
     ysC = [times[xcol]/costsC[xcol] for xcol in xcols]
     ys0 = [times[xcol]/costs0[xcol] for xcol in xcols]
     # ysC = [time/cost for time,cost in izip(times, costsC)]
     # ys0 = [time/cost for time,cost in izip(times, costs0)]
-    myw = max(ysW)
-    cratio = myw / max(ysC)
-    zeroratio = myw / max(ys0)
-    scaledysC = [cratio * i + 0.5 for i in ysC]
-    scaledys0 = [zeroratio * i - 0.5 for i in ys0]
     print "k w", min(ysW)
     print "k c", min(ysC)
     print "k 0", min(ys0)
     print "variance:", max(ysW) - min(ysW)
-    
+    output(ysW, ysC, ys0, args.title.replace(" ", "_"))
     plt.subplot(311)
     plt.plot(xcols, ysW, '-xg', label="$CM_W$")
     graph_util(args)
