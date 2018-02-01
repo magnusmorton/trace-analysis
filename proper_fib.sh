@@ -5,14 +5,6 @@ threshes=(15 16 17 18 21 24 27 30 33 36 39 42)
 
 for n in $ns
 do
-    #untransformed warmup
-    ../pycket/pycket-c fib.rkt -o 0 -n $n > trans_benchmarks/fibseqwu${n}
-
-    #task
-    for i in {1..10}
-    do
-	../pycket/pycket-c fib.rkt -o 0 -t -n $n >> trans_benchmarks/fibseqtask${n}
-    done
 
     for thresh in $threshes
     do
@@ -20,12 +12,13 @@ do
 	    break
 	fi
 	#warmup
-	../pycket/pycket-c fib.rkt -o $thresh -n $n > trans_benchmarks/fibtranswu${n}x${thresh}
+	../pycket/pycket-c fib.rkt -o $thresh -n $n 
 
 	#task
+    echo "SIZE: ${n}"
 	for i in {1..10}
 	do
-	    ../pycket/pycket-c fib.rkt -o $thresh -t -n $n >> trans_benchmarks/fibtranstask${n}x${thresh}
+	    ../pycket/pycket-c fib.rkt -o $thresh -t -n $n 
 	done
     done
 done

@@ -5,16 +5,6 @@ dims=(1000)
 
 for dim in $dims
 do
-    # untransformed
-    #warmup
-
-    ../pycket/pycket-c  matmulfl.rkt -c 0 -m $dim > trans_benchmarks/matmulseqwu${dim}
-
-    #task
-    for i in {1..10}
-    do
-	../pycket/pycket-c  matmulfl.rkt  -c 0 -t -m $dim >> trans_benchmarks/matmulseqtask${dim}
-    done	 
 
     #transformed
     #echo $dim
@@ -23,13 +13,11 @@ do
 	if [[ $size -gt $dim ]]; then
 	    break
 	fi
-	#warmup
-	../pycket/pycket-c  matmulfl.rkt -c $size -m $dim > "trans_benchmarks/matmultranswu${dim}x${size}"
-	#task
+    echo "SIZE: ${size}"
 	for i in {1..10}
 	do
 	    echo "."
-	    ../pycket/pycket-c  matmulfl.rkt  -c $size -t -m $dim >> "trans_benchmarks/matmultranstask${dim}x${size}"
+	    ../pycket/pycket-c  matmulfl.rkt  -c $size -t -m $dim 
 	done	 
     done
 done
