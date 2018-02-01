@@ -2,6 +2,7 @@
 
 
 (require racket/cmdline)
+(require "cost.rkt")
 
 (define chunk-size (make-parameter 0))
 (define task? (make-parameter #f))
@@ -65,6 +66,8 @@
 
 (sum-totient lower (+ lower (len)))
 
+(snapshot-counts)
+
 ;; task
 (when (task?)
   (if (= (chunk-size) 0)
@@ -72,4 +75,6 @@
       (if (stride?)
           (time (sum-totient start (+ start (len)) (chunk-size)))
           (time (sum-totient start (+ start (chunk-size)))))))
+
+(printf "COST: ~a~n" (task-cost))
      

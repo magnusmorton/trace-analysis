@@ -7,7 +7,7 @@
            flvector make-flvector flvector-length flvector-ref flvector-set!
            in-flvector for/flvector))
 (require racket/cmdline)
-
+(require "cost.rkt")
 (define chunk-size (make-parameter 0))
 (define task? (make-parameter #f))
 (define filename (make-parameter ""))
@@ -144,8 +144,9 @@
 (define centroids0 (random-choice data (k)))
 (k-means-step/abs (flvector-length (first data)) (k) centroids0 )
 (k-means-step/abs (flvector-length (first data)) (k) centroids0 )
-
+(snapshot-counts)
 (when (task?)
   (time (k-means-step/abs (flvector-length (first data)) (k) centroids0)))
 
 
+(printf "COST: ~a~n" (task-cost))

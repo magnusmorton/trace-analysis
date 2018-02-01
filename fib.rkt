@@ -2,6 +2,7 @@
 
 (require racket/list)
 (require racket/cmdline)
+(require "cost.rkt")
 
 (define fib-num (make-parameter 0))
 (define task? (make-parameter #f))
@@ -45,8 +46,13 @@
     (fib (fib-num))
     (dnc-fib (threshold) (fib-num)))
 
+(snapshot-counts)
+
 ;;Task
 (when (task?)
   (if (= (threshold) 0)
       (time (fib (fib-num)))
       (time (fib (threshold) ))))
+
+
+(printf "COST: ~a~n" (task-cost))

@@ -4,6 +4,7 @@
 (require racket/flonum)
 (require racket/vector)
 (require racket/cmdline)
+(require "cost.rkt")
 (define mod-id #"matmult")
 
 (define chunk-size (make-parameter 0))
@@ -126,7 +127,7 @@
       (set! cluster  (vector-copy mat1 0 (chunk-size)))
       (flmat-*cluster mat1 mat2 (chunk-size))))
     
-
+(snapshot-counts)
 ;; task
 ;;(time 
 (when (task?)
@@ -134,4 +135,4 @@
       (time (flmat-* mat1 mat2)) 
       (time (flmat-*t cluster mat2t))))
 
-   
+(printf "COST: ~a~n" (task-cost))

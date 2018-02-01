@@ -4,7 +4,7 @@
 (require racket/stream)
 (require racket/cmdline)
 (require "bit-vector.rkt")
-
+(require "cost.rkt")
 
 
 
@@ -200,8 +200,11 @@
 (if (= (chunk-size) 0)
     (mandelbrot 255 (dim) (dim))
     (mandelbrot-chunked 255 (dim) (dim) (chunk-size)))
-    
+
+(snapshot-counts)
 (when (task?)
   (if (= (chunk-size) 0)
       (time (mandelbrot 255 (dim) (dim)))
       (time (chunk-mandelbrot/abs #t 255 (dim) (dim) (chunk-size) start))))
+
+(printf "COST: ~a~n" (task-cost))
